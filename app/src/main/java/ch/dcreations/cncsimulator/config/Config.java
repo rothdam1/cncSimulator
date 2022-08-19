@@ -10,8 +10,8 @@ import java.util.List;
 
 public class Config {
 
-    public final static CNCProgram CANAL1_SAMPLE_PROGRAM = new CNCProgram("O0001;\n<b>G1 G40<\\b>");
-    public final static CNCProgram CANAL2_SAMPLE_PROGRAM = new CNCProgram("O1001;\nG1 G40");
+    public final static CNCProgram CANAL1_SAMPLE_PROGRAM = new CNCProgram("O0001;\nG1 G40;\nG1 X2.0 Y4.8 Z9;");
+    public final static CNCProgram CANAL2_SAMPLE_PROGRAM = new CNCProgram("O1001;\nG1 G40;\n G1 X4;\n G3 X2 R5");
 
     public static List<CNCAxis> GET_CNC_AXIS_CANAL1(){
         List<CNCAxis> cncAxes = new ArrayList<>();

@@ -76,18 +76,16 @@ public class CNCControl {
         }
     }
 
-    public boolean stopCNCProgram() throws InterruptedException {
+    public void stopCNCProgram() throws InterruptedException {
         for (Canal canal : canals) {
             canal.stopRunning();
             if (canal.isAlive())logger.log(Level.WARNING,"SHOT DOWN ");
         }
         if (CNCCanalExecutorService.isShutdown())logger.log(Level.WARNING,"SHOT DOWN ");
-        logger.log(Level.INFO,"CNC RUN FINISH");
         this.cncRunState = CNCState.STOP;
-        return true;
     }
 
-    public boolean runCNCProgram(){
+    public void runCNCProgram(){
         if (CNCCanalExecutorService.isShutdown()){
             CNCCanalExecutorService = Executors.newFixedThreadPool(canals.size());
         }
@@ -96,7 +94,6 @@ public class CNCControl {
         }
         this.cncRunState = CNCState.RUN;
         runCanals();
-        return true;
     }
 
     private void runCanals() {
@@ -105,13 +102,12 @@ public class CNCControl {
         }
     }
 
-    public boolean goToNextStepCNCProgram(){
+    public void goToNextStepCNCProgram(){
         this.cncRunState = CNCState.SINGLE_STEP;
         for (Canal canal : canals) {
             canal.setCanalState(CanalState.SINGLE_STEP);
         }
         runCanals();
-        return true;
     }
 
 
@@ -122,6 +118,11 @@ public class CNCControl {
         CNCCanalExecutorService.shutdownNow();
     }
 
+    /**
+     * Method can be used to register if the CNC Unit finished the current line and goes to the next line
+     * @param canalNr Current Number
+     * @return a Observable int Value
+     */
     public ObservableIntegerValue getCanalLinePositionAsObservables(int canalNr){
         if (canalNr>=canals.size())throw new ArrayIndexOutOfBoundsException("Canal does not exist");
         return canals.get(canalNr).programLinePositionProperty();
