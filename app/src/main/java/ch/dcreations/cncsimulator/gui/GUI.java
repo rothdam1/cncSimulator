@@ -1,10 +1,14 @@
 package ch.dcreations.cncsimulator.gui;
 
+import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>
@@ -19,7 +23,7 @@ import javafx.stage.Stage;
 public class GUI extends Application {
 
     ViewController controller;
-
+    private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     @Override
     public void start(Stage primaryStage) {
         getParameters();
@@ -38,7 +42,7 @@ public class GUI extends Application {
             primaryStage.setTitle("CNC-Simulator");
             primaryStage.show();
         } catch (Exception e) {
-            //Print.printError("Error starting up UI " + e.getMessage() + e);
+            logger.log(Level.WARNING,"Error starting up UI " + e.getMessage() + e);
         }
     }
 }

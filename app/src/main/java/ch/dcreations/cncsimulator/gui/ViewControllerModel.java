@@ -1,6 +1,6 @@
 package ch.dcreations.cncsimulator.gui;
 
-import ch.dcreations.cncsimulator.cncControl.Canals;
+import ch.dcreations.cncsimulator.cncControl.CanalNames;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
@@ -21,11 +21,11 @@ public class ViewControllerModel {
 
     String Canal1CNCProgramText = "";
     String Canal2CNCProgramText = "";
-    Map<Canals,String> cncProgramText = new HashMap<>();
+    Map<CanalNames,String> cncProgramText = new HashMap<>();
 
     public ViewControllerModel() {
-        this.cncProgramText.put(Canals.CANAL1,Canal1CNCProgramText);
-        this.cncProgramText.put(Canals.CANAL2,Canal2CNCProgramText);
+        this.cncProgramText.put(CanalNames.CANAL1,Canal1CNCProgramText);
+        this.cncProgramText.put(CanalNames.CANAL2,Canal2CNCProgramText);
     }
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(cncProgramText);
@@ -38,20 +38,20 @@ public class ViewControllerModel {
 
     }
 
-    public void update(Map<Canals,String> cncProgramTextOld ) {
+    public void update(Map<CanalNames,String> cncProgramTextOld ) {
         this.pcs.firePropertyChange("CanalProgram", cncProgramTextOld, cncProgramText);
     }
 
 
     public void setCanal1CNCProgramText(String canal1CNCProgramText) {
-        Map<Canals,String> cncProgramTextNewOld = Map.copyOf(cncProgramText);
-        cncProgramText.replace(Canals.CANAL1,canal1CNCProgramText);
+        Map<CanalNames,String> cncProgramTextNewOld = Map.copyOf(cncProgramText);
+        cncProgramText.replace(CanalNames.CANAL1,canal1CNCProgramText);
         update(cncProgramTextNewOld);
     }
 
     public void setCanal2CNCProgramText(String canal2CNCProgramText) {
-        Map<Canals,String> cncProgramTextNewOld = Map.copyOf(cncProgramText);
-        cncProgramText.replace(Canals.CANAL2,canal2CNCProgramText);
+        Map<CanalNames,String> cncProgramTextNewOld = Map.copyOf(cncProgramText);
+        cncProgramText.replace(CanalNames.CANAL2,canal2CNCProgramText);
         update(cncProgramTextNewOld);
     }
 }

@@ -1,7 +1,7 @@
 package ch.dcreations.cncsimulator.gui;
 import ch.dcreations.cncsimulator.cncControl.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.CNCControl;
-import ch.dcreations.cncsimulator.cncControl.Canals;
+import ch.dcreations.cncsimulator.cncControl.CanalNames;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.fxml.FXML;
@@ -27,7 +27,7 @@ public class ViewController {
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final ViewControllerModel viewControllerModel = new ViewControllerModel();
 
-    private final CNCControl cncControl = new CNCControl(Config.GET_CNC_AXIS());
+    private final CNCControl cncControl = new CNCControl(Config.GET_CNC_CANALS());
 
     @FXML
     private VBox CNCVBox;
@@ -42,8 +42,8 @@ public class ViewController {
     @FXML
     void initialize() {
         viewControllerModel.addPropertyChangeListener(evt -> {
-            textAreaCanal1.setText(viewControllerModel.cncProgramText.get(Canals.CANAL1));
-            textAreaCanal2.setText(viewControllerModel.cncProgramText.get(Canals.CANAL2));
+            textAreaCanal1.setText(viewControllerModel.cncProgramText.get(CanalNames.CANAL1));
+            textAreaCanal2.setText(viewControllerModel.cncProgramText.get(CanalNames.CANAL2));
         });
         setCNCControl();
         logger.log(Level.INFO,"GUI initialized");
@@ -57,8 +57,14 @@ public class ViewController {
 
     @FXML
     void loadSampleProgram() {
-        viewControllerModel.setCanal1CNCProgramText(Config.CANAL1_SAMPLE_PROGRAM.getProgramText());
-        viewControllerModel.setCanal2CNCProgramText(Config.CANAL2_SAMPLE_PROGRAM.getProgramText());
+        try {
+            cncControl.setCanal1CNCProgramText(Config.CANAL1_SAMPLE_PROGRAM.getProgramText());
+            cncControl.setCanal2CNCProgramText(Config.CANAL2_SAMPLE_PROGRAM.getProgramText());
+            viewControllerModel.setCanal1CNCProgramText(cncControl.getCanal1CNCProgramText());
+            viewControllerModel.setCanal2CNCProgramText(cncControl.getCanal2CNCProgramText());
+        }catch (Exception e){
+            logger.log(Level.WARNING,e.getMessage());
+        }
     }
 
     public void setCNCControl() {

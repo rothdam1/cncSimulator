@@ -9,7 +9,7 @@ package ch.dcreations.cncsimulator.cncControl;
  * @version 1.0
  * @since 2022-08-18
  */
-public enum Canals {
+public enum CanalNames {
     CANAL1,
     CANAL2
 }
