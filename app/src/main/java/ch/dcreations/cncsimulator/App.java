@@ -24,6 +24,7 @@ public class App {
      * @param args run Arguments
      */
     public static void main(String[] args) {
-        Application.launch(GUI.class, args);
+        Application.launch(GUI.class);
+        //Application.launch(gui.getClass(), args);
     }
 }

@@ -1,15 +1,14 @@
 package ch.dcreations.cncsimulator.gui;
+import ch.dcreations.cncsimulator.cncControl.CNCAxis;
+import ch.dcreations.cncsimulator.cncControl.CNCControl;
 import ch.dcreations.cncsimulator.cncControl.Canals;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TreeView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
-
+import javafx.scene.layout.VBox;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -28,41 +27,26 @@ public class ViewController {
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final ViewControllerModel viewControllerModel = new ViewControllerModel();
 
-    @FXML
-    private Button calculateCodeButton;
+    private final CNCControl cncControl = new CNCControl(Config.GET_CNC_AXIS());
 
     @FXML
-    private Pane cncAnimationView;
-
-    @FXML
-    private TreeView<?> cncTreeView;
-
-    @FXML
-    private TextArea textAreaChanal1;
-
-    @FXML
-    private TextArea textAreaChanal2;
-
-    @FXML
-    private Button zoomMinusButton;
-
-    @FXML
-    private Button zoomPlusButton;
+    private VBox CNCVBox;
 
 
     @FXML
-    private AnchorPane chanal1AnchorPane;
+    private TextArea textAreaCanal1;
 
     @FXML
-    private AnchorPane chanal2AnchorPane;
-
+    private TextArea textAreaCanal2;
 
     @FXML
     void initialize() {
         viewControllerModel.addPropertyChangeListener(evt -> {
-            textAreaChanal1.setText(viewControllerModel.cncProgramText.get(Canals.CANAL1));
-            textAreaChanal2.setText(viewControllerModel.cncProgramText.get(Canals.CANAL2));
+            textAreaCanal1.setText(viewControllerModel.cncProgramText.get(Canals.CANAL1));
+            textAreaCanal2.setText(viewControllerModel.cncProgramText.get(Canals.CANAL2));
         });
+        setCNCControl();
+        logger.log(Level.INFO,"GUI initialized");
     }
 
 
@@ -72,8 +56,15 @@ public class ViewController {
 
 
     @FXML
-    void loadSampleProgram(ActionEvent event) {
+    void loadSampleProgram() {
         viewControllerModel.setCanal1CNCProgramText(Config.CANAL1_SAMPLE_PROGRAM.getProgramText());
         viewControllerModel.setCanal2CNCProgramText(Config.CANAL2_SAMPLE_PROGRAM.getProgramText());
+    }
+
+    public void setCNCControl() {
+        for (CNCAxis cncAxis : cncControl.getCncAxes()) {
+            Label label = new Label(cncAxis.getAxisName() + " = " + cncAxis.getAxisPosition());
+            CNCVBox.getChildren().add(label);
+        }
     }
 }

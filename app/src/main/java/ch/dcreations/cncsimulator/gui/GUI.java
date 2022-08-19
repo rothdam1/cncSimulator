@@ -20,9 +20,9 @@ public class GUI extends Application {
 
     ViewController controller;
 
-
     @Override
     public void start(Stage primaryStage) {
+        getParameters();
         firstWindow(primaryStage);
     }
 

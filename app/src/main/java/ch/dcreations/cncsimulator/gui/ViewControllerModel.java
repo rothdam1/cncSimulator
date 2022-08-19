@@ -1,19 +1,15 @@
 package ch.dcreations.cncsimulator.gui;
 
 import ch.dcreations.cncsimulator.cncControl.Canals;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * <p>
  * <p>
- *  Graphic user interface Model stroes the Data of the TextField
+ *  Graphic user interface Model stores the Data of the TextField
  * <p>
  *
  * @author Damian www.d-creations.org
@@ -33,7 +29,6 @@ public class ViewControllerModel {
     }
 
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(cncProgramText);
-    private String textField = "";
 
 
 
