@@ -7,7 +7,12 @@ import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +45,13 @@ public class ViewController {
     private TextArea textAreaCanal2;
 
     @FXML
+    private ToggleButton runCNCButton;
+
+    @FXML
+    private ToggleButton stopCNCButton;
+
+
+    @FXML
     void initialize() {
         viewControllerModel.addPropertyChangeListener(evt -> {
             textAreaCanal1.setText(viewControllerModel.cncProgramText.get(CanalNames.CANAL1));
@@ -51,6 +63,11 @@ public class ViewController {
 
 
     public void closeController() {
+        try {
+            cncControl.terminateCNCControl();
+        } catch (InterruptedException e) {
+            logger.log(Level.WARNING,"SHOTDOWN CNC FAILED");
+        }
 
     }
 
@@ -62,6 +79,7 @@ public class ViewController {
             cncControl.setCanal2CNCProgramText(Config.CANAL2_SAMPLE_PROGRAM.getProgramText());
             viewControllerModel.setCanal1CNCProgramText(cncControl.getCanal1CNCProgramText());
             viewControllerModel.setCanal2CNCProgramText(cncControl.getCanal2CNCProgramText());
+            markLine();
         }catch (Exception e){
             logger.log(Level.WARNING,e.getMessage());
         }
@@ -72,5 +90,43 @@ public class ViewController {
             Label label = new Label(cncAxis.getAxisName() + " = " + cncAxis.getAxisPosition());
             CNCVBox.getChildren().add(label);
         }
+    }
+    @FXML
+    private void runCNCButtonClicked(){
+        cncControl.runCNCProgram();
+        stopCNCButton.setSelected(false);
+    }
+
+    @FXML
+    private void stopCNCButtonClicked(){
+        stopCNCControl();
+        runCNCButton.setSelected(false);
+    }
+
+    @FXML
+    private void resetCNCButtonClicked(){
+        stopCNCControl();
+        runCNCButton.setSelected(false);
+        stopCNCButton.setSelected(false);
+    }
+
+    private void stopCNCControl(){
+        try {
+            cncControl.stopCNCProgram();
+        }catch (Exception e){
+            logger.log(Level.WARNING,"STOP CNC failed");
+        }
+    }
+
+    @FXML
+    private void goToNextStepCNCButtonClicked(){
+        cncControl.goToNextStepCNCProgram();
+    }
+
+    private void markLine(){
+        Text text = new Text("HALLLO");
+        text.setSelectionFill(Color.BLUE);
+        textAreaCanal1.setText(text.getText());
+
     }
 }

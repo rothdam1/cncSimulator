@@ -1,9 +1,18 @@
 package ch.dcreations.cncsimulator.cncControl;
 
+import ch.dcreations.cncsimulator.config.LogConfiguration;
+import javafx.beans.value.ObservableIntegerValue;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * <p>
  * <p>
@@ -16,11 +25,16 @@ import java.util.List;
  */
 public class CNCControl {
 
+    private  CNCState cncRunState = CNCState.STOP;
 
+    ExecutorService CNCCanalExecutorService;
+
+    private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final List<Canal> canals;
 
     public CNCControl(List<Canal> canals) {
         this.canals = canals;
+        CNCCanalExecutorService = Executors.newFixedThreadPool(canals.size());
     }
 
     public List<CNCAxis> getCncAxes() {
@@ -47,13 +61,13 @@ public class CNCControl {
     }
 
     public String getCanal1CNCProgramText() throws IOException {
-        return getCNCPRogramTextFromCanal(1);
+        return getCNCProgramTextFromCanal(1);
     }
 
     public String getCanal2CNCProgramText() throws IOException {
-        return getCNCPRogramTextFromCanal(2);
+        return getCNCProgramTextFromCanal(2);
     }
-    private String getCNCPRogramTextFromCanal(int canalNumber) throws IOException {
+    private String getCNCProgramTextFromCanal(int canalNumber) throws IOException {
         if (canals.size()< canalNumber){
             throw new IOException("Canal does not Exist");
         }
@@ -61,4 +75,56 @@ public class CNCControl {
             return canals.get(canalNumber-1).getProgramText();
         }
     }
+
+    public boolean stopCNCProgram() throws InterruptedException {
+        for (Canal canal : canals) {
+            canal.stopRunning();
+            if (canal.isAlive())logger.log(Level.WARNING,"SHOT DOWN ");
+        }
+        if (CNCCanalExecutorService.isShutdown())logger.log(Level.WARNING,"SHOT DOWN ");
+        logger.log(Level.INFO,"CNC RUN FINISH");
+        this.cncRunState = CNCState.STOP;
+        return true;
+    }
+
+    public boolean runCNCProgram(){
+        if (CNCCanalExecutorService.isShutdown()){
+            CNCCanalExecutorService = Executors.newFixedThreadPool(canals.size());
+        }
+        for (Canal canal : canals) {
+            canal.setCanalState(CanalState.RUN);
+        }
+        this.cncRunState = CNCState.RUN;
+        runCanals();
+        return true;
+    }
+
+    private void runCanals() {
+        for (Canal canal : canals) {
+            CNCCanalExecutorService.execute(canal);
+        }
+    }
+
+    public boolean goToNextStepCNCProgram(){
+        this.cncRunState = CNCState.SINGLE_STEP;
+        for (Canal canal : canals) {
+            canal.setCanalState(CanalState.SINGLE_STEP);
+        }
+        runCanals();
+        return true;
+    }
+
+
+
+    public void terminateCNCControl() throws InterruptedException {
+        CNCCanalExecutorService.shutdown();
+        CNCCanalExecutorService.awaitTermination(10,TimeUnit.SECONDS);
+        CNCCanalExecutorService.shutdownNow();
+    }
+
+    public ObservableIntegerValue getCanalLinePositionAsObservables(int canalNr){
+        if (canalNr>=canals.size())throw new ArrayIndexOutOfBoundsException("Canal does not exist");
+        return canals.get(canalNr).programLinePositionProperty();
+    }
+
 }
