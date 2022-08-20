@@ -46,7 +46,7 @@ public class Canal extends Thread {
                 }
             }
         }catch (Exception e){
-            logger.log(Level.WARNING,"NC RUN Exception");
+            logger.log(Level.WARNING,"NC RUN Exception"+e);
         }
 
     }
@@ -133,6 +133,7 @@ public class Canal extends Thread {
     }
 
     public void stopRunning() {
+        programLinePosition.set(0);
         canalRunState.set(false);
     }
 
