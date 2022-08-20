@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 public class Canal extends Thread {
     private final List<CNCAxis> cncAxes ;
 
-    private AtomicBoolean canalRunState = new AtomicBoolean(false);
+    private final AtomicBoolean canalRunState = new AtomicBoolean(false);
     private CanalState canalState = CanalState.STOP;
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
     private int countOfProgramLines = 0;
@@ -35,14 +35,18 @@ public class Canal extends Thread {
     }
 
     @Override
-    public void run() throws IllegalArgumentException{
-        if (cncProgramText != null) {
-            String[] lines = cncProgramText.replace("\n","").split(";");
-            countOfProgramLines = lines.length;
-            switch (canalState) {
-                case SINGLE_STEP -> runNextLine(lines[programLinePosition.get()]);
-                case RUN -> runAllLines(lines);
+    public void run(){
+        try {
+            if (cncProgramText != null) {
+                String[] lines = cncProgramText.replace("\n", "").split(";");
+                countOfProgramLines = lines.length;
+                switch (canalState) {
+                    case SINGLE_STEP -> runNextLine(lines[programLinePosition.get()]);
+                    case RUN -> runAllLines(lines);
+                }
             }
+        }catch (Exception e){
+            logger.log(Level.WARNING,"NC RUN Exception");
         }
 
     }
@@ -61,28 +65,36 @@ public class Canal extends Thread {
 
 
 
-    private void runAllLines(String[] lines) throws IllegalArgumentException{
+    private void runAllLines(String[] lines) throws Exception {
         programLinePosition.set(0);
         while (programLinePosition.get() <= countOfProgramLines-2){
             runNextLine(lines[programLinePosition.get()]);
         }
     }
 
-    private void runNextLine(String line) throws IllegalArgumentException{
-        CNCProgramComand cncProgramComand = splitCommands(line);
-        logger.log(Level.INFO,"Execute Line = "+ line);
+    private void runNextLine(String line) throws Exception{
+        CNCProgramCommand cncProgramCommand = splitCommands(line);
+        executeNCCommand(cncProgramCommand);
         goToNextLine();
     }
 
-    private CNCProgramComand splitCommands(String line) throws IllegalArgumentException{
+    //@todo  execution of cnc Code
+    private void executeNCCommand(CNCProgramCommand cncProgramCommand) {
+
+    }
+
+    private CNCProgramCommand splitCommands(String line) throws Exception{
         String[] codeWords = line.replace(" ","").split("(?=[A-Z])");
         List<GCode> gCodes  = new ArrayList<>();
-        MCodes mCode = null;
         Map<AxisName,Double> axisDistance = new HashMap<>();
         List<String> additionParameters = new ArrayList<>();
+        return generateCNCCode(codeWords, gCodes, axisDistance, additionParameters);
+    }
+
+    private CNCProgramCommand generateCNCCode(String[] codeWords, List<GCode> gCodes,  Map<AxisName, Double> axisDistance, List<String> additionParameters) throws Exception {
+        MCodes mCode = null;
         for (String code : codeWords){
             if (code.length()>0) {
-                logger.log(Level.INFO, "Code = " + line);
                 Character codeCommand = checkAndGetCodeWord(code);
                 double value = getCodeValue(code);
                 switch (codeCommand) {
@@ -93,7 +105,7 @@ public class Canal extends Thread {
                 }
             }
         }
-        return new CNCProgramComand(gCodes,mCode,axisDistance,additionParameters);
+        return new CNCProgramCommand(gCodes, mCode, axisDistance, additionParameters);
     }
 
     private double getCodeValue(String code) {
@@ -101,10 +113,10 @@ public class Canal extends Thread {
     }
 
     //@todo Better Code Check of the Value
-    private Character checkAndGetCodeWord(String code) throws IllegalArgumentException {
+    private Character checkAndGetCodeWord(String code) throws Exception {
         if (code.length()<2)throw new IllegalArgumentException("CODE TO SHORT="+code);
-        if (!code.substring(0,1).matches("[A-Za-z]"))throw new IllegalArgumentException("DOES NOT HAVE A COMMAND"+code);
-        if (!code.substring(1).matches("[0-9.]*"))throw new IllegalArgumentException("VALUE IS NOT RIGHT"+code);
+        if (!code.substring(0,1).matches("[A-Za-z,]"))throw new Exception("DOES NOT HAVE A COMMAND"+code);
+        if (!code.substring(1).matches("[0-9.]*"))throw new Exception("VALUE IS NOT RIGHT"+code);
         return code.charAt(0);
     }
 
