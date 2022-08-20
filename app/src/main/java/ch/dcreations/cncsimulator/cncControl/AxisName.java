@@ -1,4 +1,8 @@
 package ch.dcreations.cncsimulator.cncControl;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 /**
  * <p>
  * <p>
@@ -10,12 +14,20 @@ package ch.dcreations.cncsimulator.cncControl;
  * @since 2022-08-18
  */
 public enum AxisName {
-    X1,
-    X2,
-    Y1,
-    Y2,
-    Z1,
-    Z2,
-    C1,
-    C2,
+    X('X'),
+    Y('Y'),
+    Z('Z'),
+    C('C'),
+    ;
+    private Character code;
+    AxisName(Character axisCode) {
+        this.code = axisCode;
+    }
+
+
+    public static Optional<AxisName> get(Character c) {
+        return Arrays.stream(AxisName.values())
+                .filter(env -> env.code.equals(c))
+                .findFirst();
+    }
 }

@@ -15,19 +15,19 @@ public class Config {
 
     public static List<CNCAxis> GET_CNC_AXIS_CANAL1(){
         List<CNCAxis> cncAxes = new ArrayList<>();
-        cncAxes.add(new CNCAxis(AxisName.X1));
-        cncAxes.add(new CNCAxis(AxisName.Y1));
-        cncAxes.add(new CNCAxis(AxisName.Z1));
-        cncAxes.add(new CNCAxis(AxisName.C1));
+        cncAxes.add(new CNCAxis(AxisName.X));
+        cncAxes.add(new CNCAxis(AxisName.Y));
+        cncAxes.add(new CNCAxis(AxisName.Z));
+        cncAxes.add(new CNCAxis(AxisName.C));
         return cncAxes;
     }
 
     public static List<CNCAxis> GET_CNC_AXIS_CANAL2(){
         List<CNCAxis> cncAxes = new ArrayList<>();
-        cncAxes.add(new CNCAxis(AxisName.X2));
-        cncAxes.add(new CNCAxis(AxisName.Y2));
-        cncAxes.add(new CNCAxis(AxisName.Z2));
-        cncAxes.add(new CNCAxis(AxisName.C2));
+        cncAxes.add(new CNCAxis(AxisName.X));
+        cncAxes.add(new CNCAxis(AxisName.Y));
+        cncAxes.add(new CNCAxis(AxisName.Z));
+        cncAxes.add(new CNCAxis(AxisName.C));
         return cncAxes;
     }
 

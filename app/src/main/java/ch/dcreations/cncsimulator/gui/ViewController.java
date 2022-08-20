@@ -13,7 +13,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
-
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -114,6 +113,7 @@ public class ViewController {
         canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
         canal2AnchorPane.getChildren().clear();
         canal2AnchorPane.getChildren().add(Canal12CNCProgramTextFlow);
+        runCNCButton.setSelected(false);
     }
 
     private void setCNCProgramToControl() {
@@ -129,10 +129,6 @@ public class ViewController {
     private void stopCNCButtonClicked(){
         stopCNCControl();
         runCNCButton.setSelected(false);
-        canal1AnchorPane.getChildren().clear();
-        canal1AnchorPane.getChildren().add(textAreaCanal1);
-        canal2AnchorPane.getChildren().clear();
-        canal2AnchorPane.getChildren().add(textAreaCanal2);
     }
 
     @FXML
@@ -147,6 +143,11 @@ public class ViewController {
             cncControl.stopCNCProgram();
         }catch (Exception e){
             logger.log(Level.WARNING,"STOP CNC failed");
+        }finally {
+            canal1AnchorPane.getChildren().clear();
+            canal1AnchorPane.getChildren().add(textAreaCanal1);
+            canal2AnchorPane.getChildren().clear();
+            canal2AnchorPane.getChildren().add(textAreaCanal2);
         }
     }
 

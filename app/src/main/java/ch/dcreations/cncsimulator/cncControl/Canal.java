@@ -1,10 +1,13 @@
 package ch.dcreations.cncsimulator.cncControl;
 
+import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
+import ch.dcreations.cncsimulator.cncControl.PLC.MCodes;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
@@ -19,6 +22,8 @@ import java.util.logging.Logger;
  */
 public class Canal extends Thread {
     private final List<CNCAxis> cncAxes ;
+
+    private AtomicBoolean canalRunState = new AtomicBoolean(false);
     private CanalState canalState = CanalState.STOP;
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
     private int countOfProgramLines = 0;
@@ -30,7 +35,7 @@ public class Canal extends Thread {
     }
 
     @Override
-    public void run() {
+    public void run() throws IllegalArgumentException{
         if (cncProgramText != null) {
             String[] lines = cncProgramText.replace("\n","").split(";");
             countOfProgramLines = lines.length;
@@ -56,18 +61,51 @@ public class Canal extends Thread {
 
 
 
-    private void runAllLines(String[] lines) {
+    private void runAllLines(String[] lines) throws IllegalArgumentException{
         programLinePosition.set(0);
         while (programLinePosition.get() <= countOfProgramLines-2){
             runNextLine(lines[programLinePosition.get()]);
         }
-        //run last Line
-        runNextLine(lines[programLinePosition.get()]);
     }
 
-    private void runNextLine(String line) {
+    private void runNextLine(String line) throws IllegalArgumentException{
+        CNCProgramComand cncProgramComand = splitCommands(line);
         logger.log(Level.INFO,"Execute Line = "+ line);
         goToNextLine();
+    }
+
+    private CNCProgramComand splitCommands(String line) throws IllegalArgumentException{
+        String[] codeWords = line.replace(" ","").split("(?=[A-Z])");
+        List<GCode> gCodes  = new ArrayList<>();
+        MCodes mCode = null;
+        Map<AxisName,Double> axisDistance = new HashMap<>();
+        List<String> additionParameters = new ArrayList<>();
+        for (String code : codeWords){
+            if (code.length()>0) {
+                logger.log(Level.INFO, "Code = " + line);
+                Character codeCommand = checkAndGetCodeWord(code);
+                double value = getCodeValue(code);
+                switch (codeCommand) {
+                    case 'G' -> gCodes.add(new GCode(Math.round(value)));
+                    case 'm' -> mCode = new MCodes(value + "");
+                    case 'X', 'Y', 'Z', 'C', 'A', 'B' -> axisDistance.put(AxisName.get(codeCommand).get(), value);
+                    default -> additionParameters.add(code);
+                }
+            }
+        }
+        return new CNCProgramComand(gCodes,mCode,axisDistance,additionParameters);
+    }
+
+    private double getCodeValue(String code) {
+        return Double.parseDouble(code.substring(1));
+    }
+
+    //@todo Better Code Check of the Value
+    private Character checkAndGetCodeWord(String code) throws IllegalArgumentException {
+        if (code.length()<2)throw new IllegalArgumentException("CODE TO SHORT="+code);
+        if (!code.substring(0,1).matches("[A-Za-z]"))throw new IllegalArgumentException("DOES NOT HAVE A COMMAND"+code);
+        if (!code.substring(1).matches("[0-9.]*"))throw new IllegalArgumentException("VALUE IS NOT RIGHT"+code);
+        return code.charAt(0);
     }
 
     private void goToNextLine() {
@@ -83,6 +121,15 @@ public class Canal extends Thread {
     }
 
     public void stopRunning() {
+        canalRunState.set(false);
+    }
+
+    public AtomicBoolean getCanalRunState() {
+        return canalRunState;
+    }
+
+    public CanalState getCanalState() {
+        return canalState;
     }
 
     /**
@@ -92,4 +139,5 @@ public class Canal extends Thread {
     public ObservableIntegerValue programLinePositionProperty() {
         return programLinePosition;
     }
+
 }
