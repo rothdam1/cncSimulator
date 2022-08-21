@@ -2,14 +2,11 @@ package ch.dcreations.cncsimulator.cncControl;
 
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.value.ObservableIntegerValue;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -79,7 +76,6 @@ public class CNCControl {
     public void stopCNCProgram() throws InterruptedException {
         for (Canal canal : canals) {
             canal.stopRunning();
-            if (canal.isAlive())logger.log(Level.WARNING,"SHOT DOWN ");
         }
         if (CNCCanalExecutorService.isShutdown())logger.log(Level.WARNING,"SHOT DOWN ");
         this.cncRunState = CNCState.STOP;
@@ -97,8 +93,14 @@ public class CNCControl {
     }
 
     private void runCanals() {
+        List<Callable<Canal>> callables = new ArrayList<>();
         for (Canal canal : canals) {
-            CNCCanalExecutorService.execute(canal);
+            callables.add(canal);
+        }
+        try {
+            CNCCanalExecutorService.invokeAll(callables);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

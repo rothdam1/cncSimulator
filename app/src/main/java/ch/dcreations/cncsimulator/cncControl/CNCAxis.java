@@ -9,6 +9,7 @@ package ch.dcreations.cncsimulator.cncControl;
  * @version 1.0
  * @since 2022-08-18
  */
+
 public class CNCAxis {
 
     AxisName axisName;

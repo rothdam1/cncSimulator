@@ -1,8 +1,11 @@
 package ch.dcreations.cncsimulator.cncControl;
 
+import com.google.common.util.concurrent.Callables;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.FutureTask;
+
 import static org.junit.jupiter.api.Assertions.*;
 /**
  * <p>
@@ -45,29 +48,29 @@ class CanalTest {
         // 1_1    TEST RUN STATE -> RUN  WITH EMPTY PROGRAM
         Canal canal = new Canal(GET_CNC_AXIS_CANAL1());
         canal.setCanalState(CanalState.RUN);
-        canal.run();
+        canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_1 TEST RUN STATE -> RUN  WITH EMPTY PROGRAM");
         // 1_2    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM
         canal.setProgram(sampleProgram);
-        canal.run();
+        canal.call();
         assertEquals(2,canal.programLinePositionProperty().get(),"CanalTest -> 1_2 TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM   ");
         // 1_3    TEST RUN STATE -> SINGLE STEP  WITH EMPTY PROGRAM
         canal = new Canal(GET_CNC_AXIS_CANAL1());
         canal.setCanalState(CanalState.SINGLE_STEP);
-        canal.run();
+        canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_3    TEST RUN STATE -> SINGLE STEP  WITH EMPTY PROGRAM");
         // 1_4    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM
         canal.setProgram(sampleProgram);
-        canal.run();
+        canal.call();
         assertEquals(1,canal.programLinePositionProperty().get(),"CanalTest ->  1_4    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM");
         // 1_5    TEST RUN STATE -> STOP  WITH EMPTY PROGRAM
         canal = new Canal(GET_CNC_AXIS_CANAL1());
         canal.setCanalState(CanalState.STOP);
-        canal.run();
+        canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_5    TEST RUN STATE -> STOP  WITH EMPTY PROGRAM ");
         // 1_6    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM
         canal.setProgram(sampleProgram);
-        canal.run();
+        canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest  ->  1_6    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM");
     }
 
@@ -93,7 +96,7 @@ class CanalTest {
         canal.setProgram(sampleProgram);
         //3_1 TEST THREAD STOP WORKS
         assertFalse(canal.getCanalRunState().get(),"CanalTest  -> 3_1 TEST THREAD STOP WORKS");
-        Thread thread = new Thread(canal);
+        Thread thread = new Thread(new FutureTask<>(canal));
         thread.start();
         canal.stopRunning();
         Thread.sleep(100);

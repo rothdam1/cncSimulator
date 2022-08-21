@@ -33,10 +33,12 @@ public class ViewController {
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final ViewControllerModel viewControllerModel = new ViewControllerModel();
 
-    private final CNCControl cncControl = new CNCControl(Config.GET_CNC_CANALS());
-    TextFlow Canal1CNCProgramTextFlow = new TextFlow();
+    private CNCControl cncControl;
+    private final TextFlow Canal1CNCProgramTextFlow = new TextFlow();
 
-    TextFlow Canal12CNCProgramTextFlow = new TextFlow();
+    private final TextFlow Canal12CNCProgramTextFlow = new TextFlow();
+
+    private Config configuration;
 
     @FXML
     private VBox CNCVBox;
@@ -61,8 +63,13 @@ public class ViewController {
 
 
     @FXML
-    void initialize() {
+    public void initialize() {
+        initialize(new Config(),new CNCControl(Config.GET_CNC_CANALS()));
+    }
 
+    public void initialize(Config config,CNCControl cncControl) {
+        this.configuration = config;
+        this.cncControl = cncControl;
         cncControl.getCanalLinePositionAsObservables(0).addListener(
                 (observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL1)
         );
@@ -70,8 +77,8 @@ public class ViewController {
                 (observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL2)
         );
         setCNCControl();
-        viewControllerModel.cncProgramText.get(CanalNames.CANAL1).bind(textAreaCanal1.textProperty());
-        viewControllerModel.cncProgramText.get(CanalNames.CANAL2).bind(textAreaCanal2.textProperty());
+        viewControllerModel.getCncProgramText().get(CanalNames.CANAL1).bind(textAreaCanal1.textProperty());
+        viewControllerModel.getCncProgramText().get(CanalNames.CANAL2).bind(textAreaCanal2.textProperty());
         logger.log(Level.INFO,"GUI initialized");
     }
 
@@ -87,24 +94,24 @@ public class ViewController {
 
 
     @FXML
-    void loadSampleProgram() {
+    public void loadSampleProgram() {
         stopCNCControl();
         try {
-            textAreaCanal1.setText(Config.CANAL1_SAMPLE_PROGRAM.getProgramText());
-            textAreaCanal2.setText(Config.CANAL2_SAMPLE_PROGRAM.getProgramText());
+            textAreaCanal1.setText(configuration.CANAL1_SAMPLE_PROGRAM.getProgramText());
+            textAreaCanal2.setText(configuration.CANAL2_SAMPLE_PROGRAM.getProgramText());
         }catch (Exception e){
             logger.log(Level.WARNING,e.getMessage());
         }
     }
 
-    public void setCNCControl() {
+    private void setCNCControl() {
         for (CNCAxis cncAxis : cncControl.getCncAxes()) {
             Label label = new Label(cncAxis.getAxisName() + " = " + cncAxis.getAxisPosition());
             CNCVBox.getChildren().add(label);
         }
     }
     @FXML
-    private void runCNCButtonClicked(){
+    public void runCNCButtonClicked(){
         setCNCProgramToControl();
         cncControl.runCNCProgram();
         stopCNCButton.setSelected(false);
@@ -126,13 +133,13 @@ public class ViewController {
     }
 
     @FXML
-    private void stopCNCButtonClicked(){
+    public void stopCNCButtonClicked(){
         stopCNCControl();
         runCNCButton.setSelected(false);
     }
 
     @FXML
-    private void resetCNCButtonClicked(){
+    public void resetCNCButtonClicked(){
         stopCNCControl();
         runCNCButton.setSelected(false);
         stopCNCButton.setSelected(false);
@@ -152,7 +159,7 @@ public class ViewController {
     }
 
     @FXML
-    private void goToNextStepCNCButtonClicked(){
+    public void goToNextStepCNCButtonClicked(){
         setCNCProgramToControl();
         cncControl.goToNextStepCNCProgram();
         canal1AnchorPane.getChildren().clear();
@@ -184,8 +191,5 @@ public class ViewController {
                 }
             }
         });
-
-
     }
-
 }

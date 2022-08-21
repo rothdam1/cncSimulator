@@ -16,6 +16,7 @@ import java.util.Map;
  * @since 2022-08-18
  */
 
+
 public class CNCProgramCommand {
     List<GCode> gCodes;
     MCodes mCode;

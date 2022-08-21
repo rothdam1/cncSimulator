@@ -32,7 +32,13 @@ TESTCASES 4
     TEST CNC run a Stop Function
         4_1 TEST if run set CNCState to run
         4_2 TEST if stop set CNCState to Stop and does not throw an Exception
-
+TESTCASES 5
+    TEST CNC run correct one Step without alarm
+        5_1 check that at start is at line 0
+        5_2 check that after goToNExtStepCNC  is at line 1
+TESTCASES 6
+    TEST CNC terminate correct
+        6_1 Check that function work without alarm
  */
 
 
@@ -90,22 +96,28 @@ class CNCControlTest {
         assertEquals(CNCState.RUN,cncControl.getCncRunState(),"CNCControl Test -> TEST 4_1  TEST if run set CNCState to ru ");
         //4_2 TEST if stop set CNCState to Stop and does not throw an Exception
         assertDoesNotThrow(() -> cncControl.stopCNCProgram());
-        assertEquals(CNCState.RUN,cncControl.getCncRunState(),"CNCControl Test -> TEST 4_2 TEST if stop set CNCState to Stop and does not throw an Exception ");
+        assertEquals(CNCState.STOP,cncControl.getCncRunState(),"CNCControl Test -> TEST 4_2 TEST if stop set CNCState to Stop and does not throw an Exception ");
     }
 
 
     @Test
     void goToNextStepCNCProgram() {
+        assertDoesNotThrow(()->cncControl.setCanal1CNCProgramText(sampleProgram),"CNCControl Test -> 5_1 check that at start is at line 0");
+        assertDoesNotThrow(()->cncControl.setCanal2CNCProgramText(sampleProgram),"CNCControl Test -> 5_1 check that at start is at line 0");
+        //5_1 check that at start is at line 0
+        assertEquals(0,cncControl.getCanalLinePositionAsObservables(0).get(),"CNCControl Test -> 5_1 check that at start is at line 0");
+        assertEquals(0,cncControl.getCanalLinePositionAsObservables(1).get(),"CNCControl Test -> 5_1 check that at start is at line 0");
+        //5_2 check that after goToNExtStepCNC  is at line 1
+        cncControl.goToNextStepCNCProgram();
+        assertEquals(1,cncControl.getCanalLinePositionAsObservables(0).get(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
+        assertEquals(1,cncControl.getCanalLinePositionAsObservables(1).get(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
     }
 
     @Test
     void terminateCNCControl() {
+        //6_1 Check that function work without alarm
+        assertDoesNotThrow( () -> cncControl.terminateCNCControl(),"CNCControl Test -> 6_1 Check that function work without alarm");
     }
-
-    @Test
-    void getCanalLinePositionAsObservables() {
-    }
-
 
 
     private static List<CNCAxis> GET_CNC_AXIS_CANAL1(){
@@ -133,5 +145,5 @@ class CNCControlTest {
         return cncCanals;
     }
 
-    private final static String sampleProgram = "O0001;\nG1 X4.0";
+    private final static String sampleProgram = "O0001;\nG1 X4.0;\nG4 Y4";
 }

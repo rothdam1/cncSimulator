@@ -7,6 +7,9 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
 
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +23,7 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 2022-08-18
  */
-public class Canal extends Thread {
+public class Canal implements Callable {
     private final List<CNCAxis> cncAxes ;
 
     private final AtomicBoolean canalRunState = new AtomicBoolean(false);
@@ -31,11 +34,12 @@ public class Canal extends Thread {
     private String cncProgramText;
 
     public Canal(List<CNCAxis> cncAxes) {
+        super();
         this.cncAxes = cncAxes;
     }
 
     @Override
-    public void run(){
+    public Boolean call(){
         try {
             if (cncProgramText != null) {
                 String[] lines = cncProgramText.replace("\n", "").split(";");
@@ -48,7 +52,7 @@ public class Canal extends Thread {
         }catch (Exception e){
             logger.log(Level.WARNING,"NC RUN Exception"+e);
         }
-
+        return true;
     }
 
     public List<CNCAxis> getCncAxes() {
