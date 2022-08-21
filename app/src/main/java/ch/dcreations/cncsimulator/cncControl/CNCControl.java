@@ -34,7 +34,7 @@ public class CNCControl {
 
     public CNCControl(List<Canal> canals) {
         this.canals = canals;
-        CNCCanalExecutorService = Executors.newFixedThreadPool(canals.size());
+        CNCCanalExecutorService = canals.size()<1 ?  Executors.newFixedThreadPool(1) : Executors.newFixedThreadPool(canals.size());
     }
 
     public List<CNCAxis> getCncAxes() {
@@ -128,4 +128,7 @@ public class CNCControl {
         return canals.get(canalNr).programLinePositionProperty();
     }
 
+    public CNCState getCncRunState() {
+        return cncRunState;
+    }
 }
