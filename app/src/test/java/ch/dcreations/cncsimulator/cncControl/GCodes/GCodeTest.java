@@ -25,7 +25,7 @@ class GCodeTest {
     GCode gCode;
     @BeforeEach
     void setUp() {
-        gCode = new GCode(1);
+        gCode = new G01(1);
     }
 
     @Test

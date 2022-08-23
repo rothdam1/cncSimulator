@@ -18,6 +18,13 @@ public enum AxisName {
     Y('Y'),
     Z('Z'),
     C('C'),
+    U('U'),
+    V('V'),
+    W('W'),
+    H('H'),
+
+    A('A'),
+    B('B'),
     ;
     private Character code;
     AxisName(Character axisCode) {

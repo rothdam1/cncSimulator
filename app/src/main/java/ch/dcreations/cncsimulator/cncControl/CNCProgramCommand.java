@@ -21,9 +21,9 @@ public class CNCProgramCommand {
     List<GCode> gCodes;
     MCodes mCode;
     Map<AxisName,Double> axisDistance;
-    List<String> additionParameters;
+    Map<Character,Double> additionParameters;
 
-    public CNCProgramCommand(List<GCode> gCodes, MCodes mCode, Map<AxisName, Double> axisDistance, List<String> additionParameters) {
+    public CNCProgramCommand(List<GCode> gCodes, MCodes mCode, Map<AxisName, Double> axisDistance, Map<Character,Double> additionParameters) {
         this.gCodes = gCodes;
         this.mCode = mCode;
         this.axisDistance = axisDistance;
