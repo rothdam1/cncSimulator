@@ -3,6 +3,7 @@ package ch.dcreations.cncsimulator.cncControl.GCodes;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -28,9 +29,9 @@ public abstract class GCode {
     protected ObservableIntegerValue spindleSpeed;
     protected Position startPosition;
 
-    protected double feed;
+    protected SimpleDoubleProperty feed;
 
-    public GCode(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition,double feed) {
+    public GCode(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed) {
         this.codeNumber = codeNumber;
         this.feedOptions = feedOptions;
         this.spindleSpeed = spindleSpeed;
@@ -42,7 +43,7 @@ public abstract class GCode {
         return codeNumber;
     }
 
-    public void execute(AtomicBoolean run) throws InterruptedException {
+    public void execute(AtomicBoolean run) throws Exception {
         finished.set(false);
         int timesRuns = 0;
         while (run.get() && !finished.get()){
@@ -52,7 +53,7 @@ public abstract class GCode {
         }
     }
 
-    protected void calculatePosition(int timesRuns, int positionCalculationResolution){
+    protected void calculatePosition(int timesRuns, int positionCalculationResolution) throws Exception {
         finished.set(true);
     }
 }

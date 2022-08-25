@@ -39,7 +39,7 @@ public class CNCControl {
         for (Canal canal : canals) {
             cncAxes.addAll(canal.getCncAxes());
         }
-    return Collections.unmodifiableList(cncAxes);
+    return (cncAxes);
     }
 
     public void setCanal1CNCProgramText(String programText) throws IOException {

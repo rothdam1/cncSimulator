@@ -107,6 +107,8 @@ public class ViewController {
     private void setCNCControl() {
         for (CNCAxis cncAxis : cncControl.getCncAxes()) {
             Label label = new Label(cncAxis.getAxisName() + " = " + cncAxis.getAxisPosition());
+
+            label.textProperty().bind(cncAxis.axisPositionProperty().asString());
             CNCVBox.getChildren().add(label);
         }
     }

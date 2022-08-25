@@ -1,4 +1,8 @@
 package ch.dcreations.cncsimulator.cncControl;
+
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+
 /**
  * <p>
  * <p>
@@ -12,12 +16,11 @@ package ch.dcreations.cncsimulator.cncControl;
 
 public class CNCAxis {
 
-    AxisName axisName;
-    double axisPosition;
+    private AxisName axisName;
+    private SimpleDoubleProperty axisPosition = new SimpleDoubleProperty(0);
 
     public CNCAxis(AxisName axisName) {
         this.axisName = axisName;
-        axisPosition = 0;
     }
 
     public AxisName getAxisName() {
@@ -25,6 +28,10 @@ public class CNCAxis {
     }
 
     public double getAxisPosition() {
+        return axisPosition.get();
+    }
+
+    public DoubleProperty axisPositionProperty() {
         return axisPosition;
     }
 }

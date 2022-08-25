@@ -1,18 +1,19 @@
 package ch.dcreations.cncsimulator.cncControl;
 
 import ch.dcreations.cncsimulator.cncControl.GCodes.*;
+import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.G01;
+import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.GCodeMove;
 import ch.dcreations.cncsimulator.cncControl.PLC.MCodes;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
-
 import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption.CONSTANT_ROTATION;
 import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption.CONSTANT_SURFACE_SPEED;
 
@@ -36,12 +37,16 @@ public class Canal implements Callable {
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private String cncProgramText;
 
+    private SimpleDoubleProperty currentFeedRate = new SimpleDoubleProperty(0);
+
     private FeedOptions feedOptions = FeedOptions.FEED_PER_REVOLUTION;
     private SpindelRotationOption spindelRotationOption = CONSTANT_ROTATION;
 
     private SimpleIntegerProperty currentSpindleSpeed = new SimpleIntegerProperty();
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private List<Callable<Boolean>> runningNCComand = new ArrayList<>();
 
-    double currentFeed = 0.0;
+
 
     public Canal(List<CNCAxis> cncAxes) {
         super();
@@ -95,23 +100,47 @@ public class Canal implements Callable {
     //@todo  execution of cnc Code
     private void executeNCCommand(CNCProgramCommand cncProgramCommand) {
         canalRunState.set(true);
-        setSpindleSpeed(cncProgramCommand.additionParameters);
-        setFeedRate(cncProgramCommand.additionParameters);
-        for (GCode gCode : cncProgramCommand.gCodes){
-            try {
-                gCode.execute(canalRunState);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+        Callable callable = () -> {
+            Canal.this.setSpindleSpeed(cncProgramCommand.additionParameters);
+            Canal.this.setFeedRate(cncProgramCommand.additionParameters);
+            for (GCode gCode : cncProgramCommand.gCodes) {
+                try {
+                    if (GCodeMove.class.isAssignableFrom(gCode.getClass())){
+                        bindAxis(((GCodeMove) gCode).getAxisPosition());
+                    }
+                    gCode.execute(canalRunState);
+                } catch (Exception e) {
+                    logger.log(Level.WARNING,"RUN TIME EXEPTION");
+                }
+                finally {
+                    unbindAxis();
+                    canalRunState.set(false);
+                    return true;
+                }
             }
+            unbindAxis();
+            return true;
+        };
+        runningNCComand.add(callable);
+        executorService.submit(callable);
+    }
+
+    private void bindAxis(Position axisPosition) {
+        cncAxes.get(0).axisPositionProperty().bind(axisPosition.xProperty());
+        cncAxes.get(1).axisPositionProperty().bind(axisPosition.yProperty());
+        cncAxes.get(2).axisPositionProperty().bind(axisPosition.zProperty());
+    }
+    private void unbindAxis() {
+        for (CNCAxis cncAxis : cncAxes){
+            cncAxis.axisPositionProperty().unbind();
         }
-        canalRunState.set(false);
     }
 
     private void setSpindleSpeed(Map<Character,Double> additionParameters) {
         if (additionParameters.containsKey('S')) currentSpindleSpeed.set((int)Math.round(additionParameters.get('S'))) ;
     }
     private void setFeedRate(Map<Character,Double> additionParameters) {
-        if (additionParameters.containsKey('F')) currentFeed = (additionParameters.get('F')) ;
+        if (additionParameters.containsKey('F')) currentFeedRate.set(additionParameters.get('F')) ;
     }
 
     private CNCProgramCommand splitCommands(String line) throws Exception{
@@ -149,11 +178,11 @@ public class Canal implements Callable {
 
     //Decodes the G value to the Correct G Code G01 -> G999
     private GCode decodeGCode(long codeNumber,Map<AxisName, Double> axisDistance) throws Exception {
-        GCode gCode = new PlainGCode(9999,feedOptions,currentSpindleSpeed);
+        GCode gCode = new PlainGCode(9999,feedOptions,currentSpindleSpeed,currentFeedRate);
         Map<AxisName,Double> parameters = setupGCodeParameters(axisDistance);
-        Position startPosition = new Position(cncAxes.get(0).getAxisPosition(),cncAxes.get(1).getAxisPosition(),cncAxes.get(2).axisPosition,0,0,0);
+        Position startPosition = new Position(cncAxes.get(0).getAxisPosition(),cncAxes.get(1).getAxisPosition(),cncAxes.get(2).getAxisPosition(),0,0,0);
         switch (Math.toIntExact(codeNumber)){
-            case 1 -> gCode = new G01(codeNumber,feedOptions,currentSpindleSpeed,startPosition,currentFeed,parameters);
+            case 1 -> gCode = new G01(codeNumber,feedOptions,currentSpindleSpeed,startPosition,currentFeedRate,parameters);
             case 97 -> spindelRotationOption = CONSTANT_ROTATION;
             case 96 -> spindelRotationOption = CONSTANT_SURFACE_SPEED;
             case 98 -> feedOptions = FeedOptions.FEED_PER_MINUITE;
@@ -195,9 +224,15 @@ public class Canal implements Callable {
         this.canalState = canalState;
     }
 
-    public void stopRunning() {
+    public void stopRunning() throws InterruptedException {
         programLinePosition.set(0);
         canalRunState.set(false);
+        executorService.invokeAll(runningNCComand);
+    }
+
+    public void stopNow(){
+        executorService.shutdownNow();
+        executorService = Executors.newSingleThreadExecutor();
     }
 
     public AtomicBoolean getCanalRunState() {
