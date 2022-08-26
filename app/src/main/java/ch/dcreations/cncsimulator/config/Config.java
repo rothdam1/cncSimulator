@@ -10,8 +10,8 @@ import java.util.List;
 
 public class Config {
 
-    public final static CNCProgram CANAL1_SAMPLE_PROGRAM = new CNCProgram("O0001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y4.8 Z9 F1.0;\nG1 X3.0 Y4.0");
-    public final static CNCProgram CANAL2_SAMPLE_PROGRAM = new CNCProgram("O1001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y4.8 Z9 F1.0;\nG1 X3.0 Y4.0");
+    public final static CNCProgram CANAL1_SAMPLE_PROGRAM = new CNCProgram("O0001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y4.8 Z9 F100.0;\nG1 X3.0 Y4.0");
+    public final static CNCProgram CANAL2_SAMPLE_PROGRAM = new CNCProgram("O1001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y4.8 Z9 F100.0;\nG1 X3.0 Y4.0");
 
     public final static int POSITION_CALCULATION_RESOLUTION = 10;
 

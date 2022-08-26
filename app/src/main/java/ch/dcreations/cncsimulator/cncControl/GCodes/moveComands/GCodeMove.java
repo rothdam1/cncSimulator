@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
 
 public class GCodeMove extends GCode {
-    private Position axisPosition ;
+    protected Position axisPosition ;
 
     public GCodeMove(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed,Position axisPosition) {
         super(codeNumber, feedOptions, spindleSpeed, startPosition, feed);

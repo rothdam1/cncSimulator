@@ -20,10 +20,12 @@ public class G01 extends GCodeMove {
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
 
     Map<AxisName,Double> parameter;
-    Position endPosition;
+    Position endPosition;;
+
+    double distance = 0;
 
     public G01(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Map<AxisName,Double> parameter) throws Exception {
-        super(codeNumber, feedOptions, spindleSpeed, startPosition,feed,startPosition);
+        super(codeNumber, feedOptions, spindleSpeed, startPosition,feed,new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()));
         this.parameter = parameter;
         setupParameterForRun();
     }
@@ -33,6 +35,8 @@ public class G01 extends GCodeMove {
         setupParameterY();
         setupParameterZ();
         setEndPosition();
+        distance = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
+
     }
 
     private void setEndPosition() {
@@ -41,9 +45,9 @@ public class G01 extends GCodeMove {
 
     private void setupParameterX() throws Exception {
         if (!parameter.containsKey(AxisName.X)&&parameter.containsKey(AxisName.U)) throw new Exception(ExeptionMessages.ARGRUMENT_X_AND_U);
-        if (!parameter.containsKey("X")&&!parameter.containsKey(AxisName.U)){
+        if (!parameter.containsKey(AxisName.X)&&!parameter.containsKey(AxisName.U)){
             parameter.put(AxisName.X, startPosition.getX());
-        }else {
+        }else if (parameter.containsKey(AxisName.U)){
             parameter.put(AxisName.X, startPosition.getX()+parameter.get(AxisName.U));
         }
     }
@@ -62,28 +66,27 @@ public class G01 extends GCodeMove {
         if (!parameter.containsKey(AxisName.Z)&&!parameter.containsKey(AxisName.W)){
             parameter.put(AxisName.Z, startPosition.getZ());
         }else if (parameter.containsKey(AxisName.W)){
-            parameter.put(AxisName.Z, startPosition.getX()+parameter.get(AxisName.W));
+            parameter.put(AxisName.Z, startPosition.getZ()+parameter.get(AxisName.W));
         }
     }
 
     @Override
     protected void calculatePosition(int timesRuns, int positionCalculationResolution) throws Exception {
         if(feed.get() == 0) throw new Exception("Feed rate us 0");
-        double distance = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
-       if(distance == 0){
+        if(distance == 0){
            finished.set(true);
        }else {
            double timeMS = (feedOptions == FeedOptions.FEED_PER_REVOLUTION) ?
                    (60*((distance / feed.get()) / spindleSpeed.get()) * 1000) : ((60*(distance / feed.get())) * 1000);
            double countOfCalculations = Math.ceil(timeMS / positionCalculationResolution);
-           if (countOfCalculations <= timesRuns) {
+           if (countOfCalculations < timesRuns) {
                finished.set(true);
            }else {
-               startPosition.setX(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns);
-               startPosition.setY(((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns);
-               startPosition.setZ(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns);
+               axisPosition.setX(startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns));
+               axisPosition.setY(startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns));
+               axisPosition.setZ(startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns));
            }
-           logger.log(Level.INFO,"DISTANCE CACULATET"+startPosition.getY());
+           //logger.log(Level.INFO,"DISTANCE CACULATET"+startPosition.getX());
        }
     }
 }

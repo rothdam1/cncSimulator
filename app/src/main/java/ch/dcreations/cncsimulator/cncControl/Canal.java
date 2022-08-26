@@ -5,6 +5,7 @@ import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.G01;
 import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.GCodeMove;
 import ch.dcreations.cncsimulator.cncControl.PLC.MCodes;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
+import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -111,18 +112,16 @@ public class Canal implements Callable {
                     gCode.execute(canalRunState);
                 } catch (Exception e) {
                     logger.log(Level.WARNING,"RUN TIME EXEPTION");
-                }
-                finally {
+                    return false;
+                }finally {
                     unbindAxis();
-                    canalRunState.set(false);
-                    return true;
                 }
             }
-            unbindAxis();
             return true;
         };
         runningNCComand.add(callable);
         executorService.submit(callable);
+
     }
 
     private void bindAxis(Position axisPosition) {
@@ -227,12 +226,29 @@ public class Canal implements Callable {
     public void stopRunning() throws InterruptedException {
         programLinePosition.set(0);
         canalRunState.set(false);
-        executorService.invokeAll(runningNCComand);
+        Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION*2);
+        for (Callable<Boolean> callable : runningNCComand){
+            try {
+                if (callable.call() == null) throw new InterruptedException("callable null");
+            } catch (Exception e) {
+                logger.log(Level.WARNING,"THRAD DOES NOT TERMINADE RIGHT");
+                stopNow();
+            }
+            finally {
+                unbindAxis();
+            }
+        }
+        logger.log(Level.INFO,"STOP");
     }
 
     public void stopNow(){
         executorService.shutdownNow();
         executorService = Executors.newSingleThreadExecutor();
+    }
+
+    public void stopDown() throws InterruptedException {
+        executorService.shutdown();
+        executorService.awaitTermination(1,TimeUnit.SECONDS);
     }
 
     public AtomicBoolean getCanalRunState() {

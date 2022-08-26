@@ -51,6 +51,7 @@ public abstract class GCode {
             calculatePosition(timesRuns,Config.POSITION_CALCULATION_RESOLUTION);
             timesRuns++;
         }
+        finished.set(true);
     }
 
     protected void calculatePosition(int timesRuns, int positionCalculationResolution) throws Exception {

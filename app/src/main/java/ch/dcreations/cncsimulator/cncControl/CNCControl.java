@@ -115,8 +115,16 @@ public class CNCControl {
 
 
     public void terminateCNCControl() throws InterruptedException {
+        for (Canal canal : canals){
+            try {
+                canal.stopDown();
+            }catch (Exception e){
+                logger.log(Level.WARNING,"CANAL DOES NOT TERMINATE RIGHT");
+                canal.stopNow();
+            }
+        }
         CNCCanalExecutorService.shutdown();
-        CNCCanalExecutorService.awaitTermination(10,TimeUnit.SECONDS);
+        CNCCanalExecutorService.awaitTermination(5,TimeUnit.SECONDS);
         CNCCanalExecutorService.shutdownNow();
     }
 

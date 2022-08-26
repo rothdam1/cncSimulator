@@ -33,7 +33,7 @@ public class Position {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                y.set(x_);
+                x.set(x_);
             }
         });
     }
