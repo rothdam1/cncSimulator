@@ -47,6 +47,7 @@ public class Canal implements Callable {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private List<Callable<Boolean>> runningNCComand = new ArrayList<>();
 
+    private List<Future<Boolean>> futures = new ArrayList<>();
 
 
     public Canal(List<CNCAxis> cncAxes) {
@@ -94,8 +95,22 @@ public class Canal implements Callable {
 
     private void runNextLine(String line) throws Exception{
         CNCProgramCommand cncProgramCommand = splitCommands(line);
-        executeNCCommand(cncProgramCommand);
-        goToNextLine();
+        if (areAllCallesFinished()){
+            executeNCCommand(cncProgramCommand);
+            goToNextLine();
+        }
+    }
+
+    private boolean areAllCallesFinished() {
+        boolean allCallesFinished = true;
+        for (Future<Boolean> call :  futures){
+            if (call.isDone()) {
+            }else {
+                logger.log(Level.INFO,"CALL IS NOT FINISHED");
+                allCallesFinished = false;
+            }
+        }
+        return allCallesFinished;
     }
 
     //@todo  execution of cnc Code
@@ -120,7 +135,7 @@ public class Canal implements Callable {
             return true;
         };
         runningNCComand.add(callable);
-        executorService.submit(callable);
+        futures.add(executorService.submit(callable));
 
     }
 
@@ -227,18 +242,10 @@ public class Canal implements Callable {
         programLinePosition.set(0);
         canalRunState.set(false);
         Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION*2);
-        for (Callable<Boolean> callable : runningNCComand){
-            try {
-                if (callable.call() == null) throw new InterruptedException("callable null");
-            } catch (Exception e) {
-                logger.log(Level.WARNING,"THRAD DOES NOT TERMINADE RIGHT");
-                stopNow();
-            }
-            finally {
-                unbindAxis();
-            }
+        if (!areAllCallesFinished()){
+            stopDown();
         }
-        logger.log(Level.INFO,"STOP");
+        unbindAxis();
     }
 
     public void stopNow(){

@@ -138,6 +138,7 @@ public class ViewController {
     public void stopCNCButtonClicked(){
         stopCNCControl();
         runCNCButton.setSelected(false);
+
     }
 
     @FXML
@@ -157,6 +158,7 @@ public class ViewController {
             canal1AnchorPane.getChildren().add(textAreaCanal1);
             canal2AnchorPane.getChildren().clear();
             canal2AnchorPane.getChildren().add(textAreaCanal2);
+            stopCNCButton.setSelected(false);
         }
     }
 
