@@ -1,4 +1,4 @@
-package ch.dcreations.cncsimulator.cncControl;
+package ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;

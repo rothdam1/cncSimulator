@@ -1,14 +1,12 @@
 package ch.dcreations.cncsimulator.gui;
-import ch.dcreations.cncsimulator.cncControl.AxisName;
-import ch.dcreations.cncsimulator.cncControl.CNCAxis;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.CNCControl;
-import ch.dcreations.cncsimulator.cncControl.CanalNames;
+import ch.dcreations.cncsimulator.cncControl.Canal.CanalNames;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.Property;
-import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -18,7 +16,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,18 +67,14 @@ public class ViewController {
 
     @FXML
     public void initialize() {
-        initialize(new Config(),new CNCControl(Config.GET_CNC_CANALS()));
+       initialize(new Config(),new CNCControl(Config.GET_CNC_CANALS()));
     }
 
     public void initialize(Config config,CNCControl cncControl) {
         this.configuration = config;
         this.cncControl = cncControl;
-        cncControl.getCanalLinePositionAsObservables(0).addListener(
-                (observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL1)
-        );
-        cncControl.getCanalLinePositionAsObservables(1).addListener(
-                (observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL2)
-        );
+        cncControl.getCanalLinePositionAsObservables(0).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL1));
+        cncControl.getCanalLinePositionAsObservables(1).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL2));
         setCNCControl();
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL1).bind(textAreaCanal1.textProperty());
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL2).bind(textAreaCanal2.textProperty());
@@ -126,14 +119,19 @@ public class ViewController {
     @FXML
     public void runCNCButtonClicked(){
         setCNCProgramToControl();
-        cncControl.runCNCProgram();
-        stopCNCButton.setSelected(false);
-        runCNCButton.setSelected(true);
-        canal1AnchorPane.getChildren().clear();
-        canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
-        canal2AnchorPane.getChildren().clear();
-        canal2AnchorPane.getChildren().add(Canal12CNCProgramTextFlow);
-        runCNCButton.setSelected(false);
+        try {
+            cncControl.runCNCProgram();
+        }catch (Exception e){
+            logger.log(Level.WARNING,e.getMessage());
+        }finally {
+            stopCNCButton.setSelected(false);
+            runCNCButton.setSelected(true);
+            canal1AnchorPane.getChildren().clear();
+            canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
+            canal2AnchorPane.getChildren().clear();
+            canal2AnchorPane.getChildren().add(Canal12CNCProgramTextFlow);
+            runCNCButton.setSelected(false);
+        }
     }
 
     private void setCNCProgramToControl() {
@@ -175,12 +173,17 @@ public class ViewController {
 
     @FXML
     public void goToNextStepCNCButtonClicked(){
-        setCNCProgramToControl();
-        cncControl.goToNextStepCNCProgram();
-        canal1AnchorPane.getChildren().clear();
-        canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
-        canal2AnchorPane.getChildren().clear();
-        canal2AnchorPane.getChildren().add(Canal12CNCProgramTextFlow);
+        try {
+            setCNCProgramToControl();
+            cncControl.goToNextStepCNCProgram();
+        }catch (Exception e){
+            logger.log(Level.WARNING,e.getMessage());
+        }finally {
+            canal1AnchorPane.getChildren().clear();
+            canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
+            canal2AnchorPane.getChildren().clear();
+            canal2AnchorPane.getChildren().add(Canal12CNCProgramTextFlow);
+        }
     }
 
     private void markLine(int lineNumber,CanalNames canalName){

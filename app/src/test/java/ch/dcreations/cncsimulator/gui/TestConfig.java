@@ -1,9 +1,9 @@
 package ch.dcreations.cncsimulator.gui;
 
-import ch.dcreations.cncsimulator.cncControl.AxisName;
-import ch.dcreations.cncsimulator.cncControl.CNCAxis;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.CNCProgram;
-import ch.dcreations.cncsimulator.cncControl.Canal;
+import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
 import ch.dcreations.cncsimulator.config.Config;
 
 import java.util.ArrayList;

@@ -1,6 +1,6 @@
 package ch.dcreations.cncsimulator.gui;
 
-import ch.dcreations.cncsimulator.cncControl.CanalNames;
+import ch.dcreations.cncsimulator.cncControl.Canal.CanalNames;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import java.util.HashMap;

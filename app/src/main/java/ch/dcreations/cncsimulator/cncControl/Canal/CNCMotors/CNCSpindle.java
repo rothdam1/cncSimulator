@@ -1,4 +1,4 @@
-package ch.dcreations.cncsimulator.cncControl;
+package ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors;
 
 import ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption;
 import javafx.beans.property.DoubleProperty;

@@ -1,4 +1,4 @@
-package ch.dcreations.cncsimulator.cncControl;
+package ch.dcreations.cncsimulator.cncControl.Canal;
 /**
  * <p>
  * <p>

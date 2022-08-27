@@ -1,4 +1,4 @@
-package ch.dcreations.cncsimulator.cncControl;
+package ch.dcreations.cncsimulator.cncControl.Canal;
 
 public enum CanalState {
     RUN,

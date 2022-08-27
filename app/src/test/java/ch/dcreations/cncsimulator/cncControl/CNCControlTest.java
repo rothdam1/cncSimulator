@@ -1,5 +1,8 @@
 package ch.dcreations.cncsimulator.cncControl;
 
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
+import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;

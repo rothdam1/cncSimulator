@@ -1,5 +1,6 @@
-package ch.dcreations.cncsimulator.cncControl;
+package ch.dcreations.cncsimulator.cncControl.Canal;
 
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
 import ch.dcreations.cncsimulator.cncControl.PLC.MCodes;
 import java.util.List;
@@ -18,16 +19,32 @@ import java.util.Map;
 
 
 public class CNCProgramCommand {
-    List<GCode> gCodes;
-    MCodes mCode;
-    Map<AxisName,Double> axisDistance;
-    Map<Character,Double> additionParameters;
+    private List<GCode> gCodes;
+    private MCodes mCode;
+    private Map<AxisName,Double> axisDistance;
+    private Map<Character,Double> additionParameters;
 
     public CNCProgramCommand(List<GCode> gCodes, MCodes mCode, Map<AxisName, Double> axisDistance, Map<Character,Double> additionParameters) {
         this.gCodes = gCodes;
         this.mCode = mCode;
         this.axisDistance = axisDistance;
         this.additionParameters = additionParameters;
+    }
+
+    public List<GCode> getgCodes() {
+        return gCodes;
+    }
+
+    public MCodes getCode() {
+        return mCode;
+    }
+
+    public Map<AxisName, Double> getAxisDistance() {
+        return axisDistance;
+    }
+
+    public Map<Character, Double> getAdditionParameters() {
+        return additionParameters;
     }
 }
 

@@ -1,5 +1,9 @@
 package ch.dcreations.cncsimulator.cncControl;
 
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
+import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
+import ch.dcreations.cncsimulator.cncControl.Canal.CanalState;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;

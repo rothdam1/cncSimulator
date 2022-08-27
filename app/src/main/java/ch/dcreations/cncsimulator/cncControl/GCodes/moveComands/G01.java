@@ -1,8 +1,7 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
-import ch.dcreations.cncsimulator.cncControl.AxisName;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
-import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Calculator;
 import ch.dcreations.cncsimulator.config.ExeptionMessages;
@@ -10,9 +9,7 @@ import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
 
-import java.awt.*;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class G01 extends GCodeMove {
