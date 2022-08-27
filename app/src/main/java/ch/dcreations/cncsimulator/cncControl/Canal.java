@@ -1,5 +1,6 @@
 package ch.dcreations.cncsimulator.cncControl;
 
+import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistExeption;
 import ch.dcreations.cncsimulator.cncControl.GCodes.*;
 import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.G01;
 import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.GCodeMove;
@@ -7,6 +8,7 @@ import ch.dcreations.cncsimulator.cncControl.PLC.MCodes;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
@@ -29,7 +31,11 @@ import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption
  * @since 2022-08-18
  */
 public class Canal implements Callable {
-    private final List<CNCAxis> cncAxes ;
+    private final Map<AxisName,CNCAxis>  cncAxes ;
+
+    private final Map<SpindelNames,CNCSpindle>  cncSpindles ;
+
+    private CNCSpindle currentSelectedSpindle;
 
     private final AtomicBoolean canalRunState = new AtomicBoolean(false);
     private CanalState canalState = CanalState.STOP;
@@ -41,18 +47,22 @@ public class Canal implements Callable {
     private SimpleDoubleProperty currentFeedRate = new SimpleDoubleProperty(0);
 
     private FeedOptions feedOptions = FeedOptions.FEED_PER_REVOLUTION;
-    private SpindelRotationOption spindelRotationOption = CONSTANT_ROTATION;
 
-    private SimpleIntegerProperty currentSpindleSpeed = new SimpleIntegerProperty();
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private List<Callable<Boolean>> runningNCComand = new ArrayList<>();
 
     private List<Future<Boolean>> futures = new ArrayList<>();
 
 
-    public Canal(List<CNCAxis> cncAxes) {
+    public Canal(Map<AxisName,CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles) {
         super();
         this.cncAxes = cncAxes;
+        this.cncSpindles = cncSpindles;
+        try {
+            setCurrentSelectedSpindle(SpindelNames.S1);
+        }catch (Exception e){
+            logger.log(Level.WARNING,e.getMessage());
+        }
     }
 
     @Override
@@ -72,12 +82,12 @@ public class Canal implements Callable {
         return true;
     }
 
-    public List<CNCAxis> getCncAxes() {
-        return Collections.unmodifiableList(cncAxes);
+    public Map<AxisName,CNCAxis> getCncAxes() {
+        return Map.copyOf(cncAxes);
     }
 
     public void setProgram(String programText) {
-        cncProgramText = programText;
+        cncProgramText = programText+";\n%";// ADD a END OF FILE
     }
 
     public String getProgramText() {
@@ -96,8 +106,8 @@ public class Canal implements Callable {
     private void runNextLine(String line) throws Exception{
         CNCProgramCommand cncProgramCommand = splitCommands(line);
         if (areAllCallesFinished()){
-            executeNCCommand(cncProgramCommand);
             goToNextLine();
+            executeNCCommand(cncProgramCommand);
         }
     }
 
@@ -140,18 +150,18 @@ public class Canal implements Callable {
     }
 
     private void bindAxis(Position axisPosition) {
-        cncAxes.get(0).axisPositionProperty().bind(axisPosition.xProperty());
-        cncAxes.get(1).axisPositionProperty().bind(axisPosition.yProperty());
-        cncAxes.get(2).axisPositionProperty().bind(axisPosition.zProperty());
+        cncAxes.get(AxisName.X).axisPositionProperty().bind(axisPosition.xProperty());
+        cncAxes.get(AxisName.Y).axisPositionProperty().bind(axisPosition.yProperty());
+        cncAxes.get(AxisName.Z).axisPositionProperty().bind(axisPosition.zProperty());
     }
     private void unbindAxis() {
-        for (CNCAxis cncAxis : cncAxes){
-            cncAxis.axisPositionProperty().unbind();
+        for (AxisName axisName : cncAxes.keySet()){
+            cncAxes.get(axisName).axisPositionProperty().unbind();
         }
     }
 
     private void setSpindleSpeed(Map<Character,Double> additionParameters) {
-        if (additionParameters.containsKey('S')) currentSpindleSpeed.set((int)Math.round(additionParameters.get('S'))) ;
+        if (additionParameters.containsKey('S')) currentSelectedSpindle.setCurrentSpindleSpeed((int)Math.round(additionParameters.get('S'))) ;
     }
     private void setFeedRate(Map<Character,Double> additionParameters) {
         if (additionParameters.containsKey('F')) currentFeedRate.set(additionParameters.get('F')) ;
@@ -172,6 +182,7 @@ public class Canal implements Callable {
                 Character codeCommand = checkAndGetCodeWord(code);
                 double value = getCodeValue(code);
                 switch (codeCommand) {
+                    case '%' -> {}// END OF FILE
                     case 'X', 'Y', 'Z', 'C', 'A', 'B' -> axisDistance.put(AxisName.get(codeCommand).get(), value);
                     default -> additionalParameterMap.put(codeCommand,value);
                 }
@@ -182,6 +193,7 @@ public class Canal implements Callable {
                 Character codeCommand = checkAndGetCodeWord(code);
                 double value = getCodeValue(code);
                 switch (codeCommand) {
+                    case '%' -> {}// END OF FILE
                     case 'G' -> gCodes.add(decodeGCode(Math.round(value),axisDistance));
                     case 'M' -> mCode = new MCodes(value + "");
                 }
@@ -192,18 +204,26 @@ public class Canal implements Callable {
 
     //Decodes the G value to the Correct G Code G01 -> G999
     private GCode decodeGCode(long codeNumber,Map<AxisName, Double> axisDistance) throws Exception {
-        GCode gCode = new PlainGCode(9999,feedOptions,currentSpindleSpeed,currentFeedRate);
+        GCode gCode = new PlainGCode(9999,feedOptions,currentSelectedSpindle.currentSpindleSpeedProperty(),currentFeedRate);
         Map<AxisName,Double> parameters = setupGCodeParameters(axisDistance);
-        Position startPosition = new Position(cncAxes.get(0).getAxisPosition(),cncAxes.get(1).getAxisPosition(),cncAxes.get(2).getAxisPosition(),0,0,0);
+        Position startPosition = new Position(cncAxes.get(AxisName.X).getAxisPosition(),cncAxes.get(AxisName.Y).getAxisPosition(),cncAxes.get(AxisName.Z).getAxisPosition(),0,0,0);
         switch (Math.toIntExact(codeNumber)){
-            case 1 -> gCode = new G01(codeNumber,feedOptions,currentSpindleSpeed,startPosition,currentFeedRate,parameters);
-            case 97 -> spindelRotationOption = CONSTANT_ROTATION;
-            case 96 -> spindelRotationOption = CONSTANT_SURFACE_SPEED;
+            case 1 -> gCode = new G01(codeNumber,feedOptions,currentSelectedSpindle.currentSpindleSpeedProperty(),startPosition,currentFeedRate,parameters);
+            case 97 -> currentSelectedSpindle.setSpindleRotationOption(CONSTANT_ROTATION);
+            case 96 -> currentSelectedSpindle.setSpindleRotationOption(CONSTANT_SURFACE_SPEED,getCNCAxisProperty(AxisName.X));
             case 98 -> feedOptions = FeedOptions.FEED_PER_MINUITE;
             case 99 -> feedOptions = FeedOptions.FEED_PER_REVOLUTION;
             default -> throw new Exception("Code does not exist");
         }
         return gCode;
+    }
+
+    private DoubleProperty getCNCAxisProperty(AxisName axisName) throws AxisOrSpindleDoesNotExistExeption {
+        if (cncAxes.containsKey(axisName)) {
+            return cncAxes.get(axisName).axisPositionProperty();
+        }else {
+            throw new AxisOrSpindleDoesNotExistExeption("AXIS DOES NOT EXIST");
+        }
     }
 
     private Map<AxisName, Double> setupGCodeParameters(Map<AxisName, Double> axisDistance) {
@@ -220,9 +240,11 @@ public class Canal implements Callable {
 
     //@todo Better Code Check of the Value
     private Character checkAndGetCodeWord(String code) throws Exception {
-        if (code.length()<2)throw new IllegalArgumentException("CODE TO SHORT="+code);
-        if (!code.substring(0,1).matches("[A-Za-z,]"))throw new Exception("DOES NOT HAVE A COMMAND"+code);
-        if (!code.substring(1).matches("[0-9.]*"))throw new Exception("VALUE IS NOT RIGHT"+code);
+        if (code.length()<2 && !code.matches(Config.END_OF_PROGRAM_SIMBOLE))throw new IllegalArgumentException("CODE TO SHORT="+code);
+        if (!code.substring(0,1).matches("[A-Za-z,%]"))throw new Exception("DOES NOT HAVE A COMMAND"+code);
+        if (!code.matches(Config.END_OF_PROGRAM_SIMBOLE)) {
+            if (!code.substring(1).matches("[0-9.]*")) throw new Exception("VALUE IS NOT RIGHT" + code);
+        }
         return code.charAt(0);
     }
 
@@ -243,7 +265,7 @@ public class Canal implements Callable {
         canalRunState.set(false);
         Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION*2);
         if (!areAllCallesFinished()){
-            stopDown();
+            stop();
         }
         unbindAxis();
     }
@@ -253,7 +275,7 @@ public class Canal implements Callable {
         executorService = Executors.newSingleThreadExecutor();
     }
 
-    public void stopDown() throws InterruptedException {
+    public void stop() throws InterruptedException {
         executorService.shutdown();
         executorService.awaitTermination(1,TimeUnit.SECONDS);
     }
@@ -274,4 +296,15 @@ public class Canal implements Callable {
         return programLinePosition;
     }
 
+    public CNCSpindle getCurrentSelectedSpindle() {
+        return currentSelectedSpindle;
+    }
+
+    public void setCurrentSelectedSpindle(SpindelNames selectedSpindle) throws AxisOrSpindleDoesNotExistExeption {
+        if (cncSpindles.containsKey(selectedSpindle)){
+            this.currentSelectedSpindle = cncSpindles.get(selectedSpindle);
+        }else {
+            throw new AxisOrSpindleDoesNotExistExeption("Selected Spindle does not Exist");
+        }
+    }
 }

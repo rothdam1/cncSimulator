@@ -4,8 +4,9 @@ import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.value.ObservableIntegerValue;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,12 +35,12 @@ public class CNCControl {
         CNCCanalExecutorService = canals.size()<1 ?  Executors.newFixedThreadPool(1) : Executors.newFixedThreadPool(canals.size());
     }
 
-    public List<CNCAxis> getCncAxes() {
-        List<CNCAxis> cncAxes = new ArrayList<>();
+    public List<Map<AxisName,CNCAxis>> getCncAxes() {
+        List<Map<AxisName,CNCAxis>> listOfAllAxis = new ArrayList<>();
         for (Canal canal : canals) {
-            cncAxes.addAll(canal.getCncAxes());
+            listOfAllAxis.add(canal.getCncAxes());
         }
-    return (cncAxes);
+    return (listOfAllAxis);
     }
 
     public void setCanal1CNCProgramText(String programText) throws IOException {
@@ -117,7 +118,7 @@ public class CNCControl {
     public void terminateCNCControl() throws InterruptedException {
         for (Canal canal : canals){
             try {
-                canal.stopDown();
+                canal.stop();
             }catch (Exception e){
                 logger.log(Level.WARNING,"CANAL DOES NOT TERMINATE RIGHT");
                 canal.stopNow();

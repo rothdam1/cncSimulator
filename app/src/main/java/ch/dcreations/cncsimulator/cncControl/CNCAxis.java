@@ -16,16 +16,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 
 public class CNCAxis {
 
-    private AxisName axisName;
-    private SimpleDoubleProperty axisPosition = new SimpleDoubleProperty(0);
+    private final SimpleDoubleProperty axisPosition = new SimpleDoubleProperty(0);
 
-    public CNCAxis(AxisName axisName) {
-        this.axisName = axisName;
-    }
-
-    public AxisName getAxisName() {
-        return axisName;
-    }
 
     public double getAxisPosition() {
         return axisPosition.get();

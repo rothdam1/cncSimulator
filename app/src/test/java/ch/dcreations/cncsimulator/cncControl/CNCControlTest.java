@@ -140,8 +140,8 @@ class CNCControlTest {
 
     private static List<Canal> GET_CNC_CANALS() {
         List<Canal> cncCanals = new ArrayList<>();
-        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL1()));
-        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL2()));
+        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles));
+        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL2(), cncSpindles));
         return cncCanals;
     }
 

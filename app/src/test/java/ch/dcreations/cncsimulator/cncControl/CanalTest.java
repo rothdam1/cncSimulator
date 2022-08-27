@@ -1,6 +1,5 @@
 package ch.dcreations.cncsimulator.cncControl;
 
-import com.google.common.util.concurrent.Callables;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +45,7 @@ class CanalTest {
     @Test
     void run() {
         // 1_1    TEST RUN STATE -> RUN  WITH EMPTY PROGRAM
-        Canal canal = new Canal(GET_CNC_AXIS_CANAL1());
+        Canal canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
         canal.setCanalState(CanalState.RUN);
         canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_1 TEST RUN STATE -> RUN  WITH EMPTY PROGRAM");
@@ -55,7 +54,7 @@ class CanalTest {
         canal.call();
         assertEquals(2,canal.programLinePositionProperty().get(),"CanalTest -> 1_2 TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM   ");
         // 1_3    TEST RUN STATE -> SINGLE STEP  WITH EMPTY PROGRAM
-        canal = new Canal(GET_CNC_AXIS_CANAL1());
+        canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
         canal.setCanalState(CanalState.SINGLE_STEP);
         canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_3    TEST RUN STATE -> SINGLE STEP  WITH EMPTY PROGRAM");
@@ -64,7 +63,7 @@ class CanalTest {
         canal.call();
         assertEquals(1,canal.programLinePositionProperty().get(),"CanalTest ->  1_4    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM");
         // 1_5    TEST RUN STATE -> STOP  WITH EMPTY PROGRAM
-        canal = new Canal(GET_CNC_AXIS_CANAL1());
+        canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
         canal.setCanalState(CanalState.STOP);
         canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_5    TEST RUN STATE -> STOP  WITH EMPTY PROGRAM ");
@@ -76,7 +75,7 @@ class CanalTest {
 
     @Test
     void setCanalState() {
-        Canal canal = new Canal(GET_CNC_AXIS_CANAL1());
+        Canal canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
         canal.setCanalState(CanalState.RUN);
         //2_1 Check SET to RUN
         assertEquals(CanalState.RUN,canal.getCanalState(),"CanalTest  -> 2_1 Check SET to RUN" );
@@ -92,7 +91,7 @@ class CanalTest {
 
     @Test
     void stopRunning() throws InterruptedException {
-        Canal canal = new Canal(GET_CNC_AXIS_CANAL1());
+        Canal canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
         canal.setProgram(sampleProgram);
         //3_1 TEST THREAD STOP WORKS
         assertFalse(canal.getCanalRunState().get(),"CanalTest  -> 3_1 TEST THREAD STOP WORKS");

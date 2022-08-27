@@ -1,10 +1,14 @@
 package ch.dcreations.cncsimulator.gui;
+import ch.dcreations.cncsimulator.cncControl.AxisName;
 import ch.dcreations.cncsimulator.cncControl.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.CNCControl;
 import ch.dcreations.cncsimulator.cncControl.CanalNames;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.Property;
+import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -14,6 +18,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -105,11 +111,16 @@ public class ViewController {
     }
 
     private void setCNCControl() {
-        for (CNCAxis cncAxis : cncControl.getCncAxes()) {
-            Label label = new Label(cncAxis.getAxisName() + " = " + cncAxis.getAxisPosition());
-
-            label.textProperty().bind(cncAxis.axisPositionProperty().asString());
-            CNCVBox.getChildren().add(label);
+        int chanalNumber = 1;
+        for (Map<AxisName,CNCAxis> cncAxis : cncControl.getCncAxes()) {
+            Label labelCanalName = new Label("Canal "+chanalNumber);
+            CNCVBox.getChildren().add(labelCanalName);
+            for (AxisName axisName : cncAxis.keySet()) {
+                Label label = new Label();
+                label.textProperty().bind(Bindings.concat(axisName,chanalNumber," ",cncAxis.get(axisName).axisPositionProperty().asString()));
+                CNCVBox.getChildren().add(label);
+            }
+            chanalNumber++;
         }
     }
     @FXML
@@ -180,9 +191,10 @@ public class ViewController {
                 case CANAL1 -> Canal1CNCProgramTextFlow.getChildren().clear();
                 case CANAL2 -> Canal12CNCProgramTextFlow.getChildren().clear();
             }
-            for (int i = lineNumber; i < canal1Program.length;i++){
+            int startViewPosition = (lineNumber == 0) ? 0 : lineNumber-1;
+            for (int i = startViewPosition; i < canal1Program.length;i++){
                 Text text1 = new Text(canal1Program[i]+"\n");
-                if(i == lineNumber){
+                if(i == startViewPosition){
                     text1.setFill(Color.RED);
                     text1.setFont(Font.font("Helvetica",  FontWeight.BOLD, 20));
                 }else {
