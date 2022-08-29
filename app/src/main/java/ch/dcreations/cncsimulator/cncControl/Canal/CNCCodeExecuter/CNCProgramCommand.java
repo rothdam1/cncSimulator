@@ -1,4 +1,4 @@
-package ch.dcreations.cncsimulator.cncControl.Canal;
+package ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter;
 
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * <p>
  * <p>
- *  IS a Single Line Comand of the CNC ISO CODE Like G1 X3.0 Z3.0
+ *  IS a Single Line Command of the CNC ISO CODE Like G1 X3.0 Z3.0
  * <p>
  *
  * @author Damian www.d-creations.org
@@ -19,10 +19,10 @@ import java.util.Map;
 
 
 public class CNCProgramCommand {
-    private List<GCode> gCodes;
-    private MCodes mCode;
-    private Map<AxisName,Double> axisDistance;
-    private Map<Character,Double> additionParameters;
+    private final List<GCode> gCodes;
+    private final MCodes mCode;
+    private final Map<AxisName,Double> axisDistance;
+    private final Map<Character,Double> additionParameters;
 
     public CNCProgramCommand(List<GCode> gCodes, MCodes mCode, Map<AxisName, Double> axisDistance, Map<Character,Double> additionParameters) {
         this.gCodes = gCodes;
@@ -31,7 +31,7 @@ public class CNCProgramCommand {
         this.additionParameters = additionParameters;
     }
 
-    public List<GCode> getgCodes() {
+    public List<GCode> getGCodes() {
         return gCodes;
     }
 

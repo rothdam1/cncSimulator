@@ -4,11 +4,10 @@ import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCSpindle;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.SpindelNames;
-import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistExeption;
+import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -19,7 +18,7 @@ public class CanalDataModel {
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final Map<AxisName, CNCAxis> cncAxes;
-    private SimpleDoubleProperty currentFeedRate = new SimpleDoubleProperty(0);
+    private final SimpleDoubleProperty currentFeedRate = new SimpleDoubleProperty(0);
     private FeedOptions feedOptions = FeedOptions.FEED_PER_REVOLUTION;
     private final AtomicBoolean canalRunState = new AtomicBoolean(false);
     private boolean RunLineIsCompleted = false;
@@ -35,11 +34,11 @@ public class CanalDataModel {
         return currentSelectedSpindle;
     }
 
-    public void setCurrentSelectedSpindle(SpindelNames selectedSpindle) throws AxisOrSpindleDoesNotExistExeption {
+    public void setCurrentSelectedSpindle(SpindelNames selectedSpindle) throws AxisOrSpindleDoesNotExistException {
         if (cncSpindles.containsKey(selectedSpindle)) {
             this.currentSelectedSpindle = cncSpindles.get(selectedSpindle);
         } else {
-            throw new AxisOrSpindleDoesNotExistExeption("Selected Spindle does not Exist");
+            throw new AxisOrSpindleDoesNotExistException("Selected Spindle does not Exist");
         }
     }
 

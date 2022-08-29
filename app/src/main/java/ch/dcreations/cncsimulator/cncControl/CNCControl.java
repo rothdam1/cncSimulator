@@ -5,7 +5,6 @@ import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalState;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ public class CNCControl {
     private  CNCState cncRunState = CNCState.STOP;
 
     private ExecutorService CNCCanalExecutorService;
-    private List<Future<Boolean>> CNCCanalExecuterFuture = new ArrayList<>();
+    private final List<Future<Boolean>> CNCCanalExecuteFuture = new ArrayList<>();
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final List<Canal> canals;
 
@@ -98,11 +97,9 @@ public class CNCControl {
     }
 
     private void runCanals() throws Exception {
-        List<Callable<Canal>> callables = new ArrayList<>();
-        if (areAllCallesFinished()) {
+        if (areAllCanalsFinished()) {
             for (Canal canal : canals) {
-                callables.add(canal);
-                CNCCanalExecuterFuture.add(CNCCanalExecutorService.submit(canal));
+                CNCCanalExecuteFuture.add(CNCCanalExecutorService.submit(canal));
             }
         }else {
             throw new Exception("NC IS STILL RUNNING ");
@@ -129,8 +126,9 @@ public class CNCControl {
             }
         }
         CNCCanalExecutorService.shutdown();
-        CNCCanalExecutorService.awaitTermination(5,TimeUnit.SECONDS);
-        CNCCanalExecutorService.shutdownNow();
+        if(!CNCCanalExecutorService.awaitTermination(5,TimeUnit.SECONDS)){
+            CNCCanalExecutorService.shutdownNow();
+        }
     }
 
     /**
@@ -148,15 +146,32 @@ public class CNCControl {
     }
 
 
-    private boolean areAllCallesFinished() {
-        boolean allCallesFinished = true;
-        for (Future<Boolean> call :  CNCCanalExecuterFuture){
-            if (call.isDone()) {
-            }else {
+    private boolean areAllCanalsFinished() {
+        boolean allCallsFinished = true;
+        for (Future<Boolean> call : CNCCanalExecuteFuture){
+            if (!call.isDone()) {
                 logger.log(Level.INFO,"CALL IS NOT FINISHED");
-                allCallesFinished = false;
+                allCallsFinished = false;
             }
         }
-        return allCallesFinished;
+        return allCallsFinished;
+    }
+
+    public boolean isTheNCRunning() {
+        boolean allCallsFinished = true;
+        for (Future<Boolean> call : CNCCanalExecuteFuture){
+            if (!call.isDone()) {
+                allCallsFinished = false;
+            }
+        }
+        return allCallsFinished;
+    }
+
+    public void runStoppedCNCControl() {
+        canals.stream().forEach((x) -> x.runBrakedCode());
+    }
+
+    public void stopCNCControl() {
+        canals.stream().forEach((x) -> x.brakerunningCode());
     }
 }

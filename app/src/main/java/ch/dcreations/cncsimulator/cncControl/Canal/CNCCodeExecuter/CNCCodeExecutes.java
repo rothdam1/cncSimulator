@@ -1,53 +1,58 @@
 package ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter;
 
-import ch.dcreations.cncsimulator.cncControl.Canal.*;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalDataModel;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
 import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.GCodeMove;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
-
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+/**
+ * <p>
+ * <p>
+ * CNC Code Executes implements Callable to execute a CNC Code Line in a Thread
+ * <p>
+ *
+ * @author Damian www.d-creations.org
+ * @version 1.0
+ * @since 2022-08-18
+ */
 
-public class CNCCodeExecuter implements Callable {
+public class CNCCodeExecutes implements Callable<Boolean> {
 
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final CNCProgramCommand cncProgramCommand;
     private final CanalDataModel canalDataModel;
-    private Lock lock;
 
-    public CNCCodeExecuter(CNCProgramCommand cncProgramCommand, CanalDataModel canalDataModel,Lock lock) {
+    AtomicBoolean brakeRunningCode;
+    public CNCCodeExecutes(CNCProgramCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode) {
         this.cncProgramCommand = cncProgramCommand;
         this.canalDataModel = canalDataModel;
-        this.lock = lock;
+        this.brakeRunningCode = brakeRunningCode;
     }
 
     @Override
-    public Object call() throws Exception {
+    public Boolean call(){
         try {
             setSpindleSpeed(cncProgramCommand.getAdditionParameters());
             setFeedRate(cncProgramCommand.getAdditionParameters());
-            for (GCode gCode : cncProgramCommand.getgCodes()) {
-
+            for (GCode gCode : cncProgramCommand.getGCodes()) {
                 if (GCodeMove.class.isAssignableFrom(gCode.getClass())) {
                     bindAxis(((GCodeMove) gCode).getAxisPosition());
                 }
-                gCode.execute(canalDataModel.getCanalRunState());
+                gCode.execute(canalDataModel.getCanalRunState(),brakeRunningCode);
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "RUN TIME EXEPTION");
+            logger.log(Level.WARNING, "RUN TIME EXCEPTION");
         } finally {
             unbindAxis();
-            boolean RunLineIsCompleted = true;
-            return true;
-
-    }
+        }
+        return true;
     }
 
     private void bindAxis(Position axisPosition) {

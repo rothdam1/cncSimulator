@@ -1,25 +1,19 @@
 package ch.dcreations.cncsimulator.cncControl.Canal;
 
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeDecoder;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeExecuter;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeExecutes;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCProgramCommand;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCSpindle;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.SpindelNames;
-import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistExeption;
-import ch.dcreations.cncsimulator.cncControl.GCodes.*;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
-
-import javax.swing.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,21 +27,19 @@ import java.util.logging.Logger;
  * @version 1.0
  * @since 2022-08-18
  */
-public class Canal implements Callable {
+public class Canal implements Callable<Boolean> {
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    private List<Future<Boolean>> futures = new ArrayList<>();
+    private final List<Future<Boolean>> futures = new ArrayList<>();
 
-    private List<Callable<Boolean>> runningNCComand = new ArrayList<>();
-    CanalDataModel canalDataModel;
-
+    private CanalDataModel canalDataModel;
     private int countOfProgramLines = 0;
     private String cncProgramText = "";
+    private AtomicBoolean brakeRunningCode = new AtomicBoolean(false);
     private SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
     boolean RunLineIsCompleted = false;
-    final Lock lock = new ReentrantLock();
 
     public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles) {
         super();
@@ -76,12 +68,13 @@ public class Canal implements Callable {
         return true;
     }
 
+
     public Map<AxisName, CNCAxis> getCncAxes() {
         return Map.copyOf(canalDataModel.getCncAxes());
     }
 
     public void setProgram(String programText) {
-        cncProgramText = programText + ";\n%";// ADD a END OF FILE
+        cncProgramText = programText + ";\n%";// ADD an END OF FILE
     }
 
     public String getProgramText() {
@@ -91,10 +84,13 @@ public class Canal implements Callable {
 
     private void runAllLines(String[] lines) throws Exception {
         programLinePosition.set(0);
-        if (areAllCallesFinished()) {
+        if (areAllCallsFinished()) {
             RunLineIsCompleted = true;
             while (programLinePosition.get() <= countOfProgramLines - 2) {
                     RunLineIsCompleted = false;
+                    for(Future<Boolean> future : futures){
+                        future.get();
+                    }
                     runNextLine(lines[programLinePosition.get()]);
             }
         }
@@ -103,41 +99,35 @@ public class Canal implements Callable {
      private void runNextLine(String line) throws Exception {
         CNCCodeDecoder cncCodeDecoder = new CNCCodeDecoder(canalDataModel);
         CNCProgramCommand cncProgramCommand = cncCodeDecoder.splitCommands(line);
-            if(futures.stream().anyMatch((x) -> !x.isDone()) ){
-                Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION);
-            }else {
+            if(areAllCallsFinished() ){
                 goToNextLine();
                 executeNCCommand(cncProgramCommand);
             }
     }
 
-    private boolean areAllCallesFinished() {
-        boolean allCallesFinished = true;
+    private boolean areAllCallsFinished() {
+        boolean allCallsFinished = true;
         for (Future<Boolean> call : futures) {
             if (!call.isDone()) {
                 logger.log(Level.INFO, "CALL IS NOT FINISHED");
-                allCallesFinished = false;
+                allCallsFinished = false;
             }
         }
-        return allCallesFinished;
+        return allCallsFinished;
     }
 
     synchronized private void executeNCCommand(CNCProgramCommand cncProgramCommand) {
         canalDataModel.setCanalRunState(true);
-        Callable callable = new CNCCodeExecuter(cncProgramCommand,canalDataModel,lock);
-        runningNCComand.add(callable);
+        Callable callable = new CNCCodeExecutes(cncProgramCommand,canalDataModel,brakeRunningCode);
         futures.add(executorService.submit(callable));
 
     }
-
 
     private void unbindAxis() {
         for (AxisName axisName : canalDataModel.getCncAxes().keySet()) {
             canalDataModel.getCncAxes().get(axisName).axisPositionProperty().unbind();
         }
     }
-
-
 
     private void goToNextLine() {
         if (programLinePosition.get() >= countOfProgramLines - 1) {
@@ -154,8 +144,14 @@ public class Canal implements Callable {
     public void stopRunning() throws InterruptedException {
         programLinePosition.set(0);
         canalDataModel.setCanalRunState(false);
-        Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION * 2);
-        if (!areAllCallesFinished()) {
+        futures.forEach((x) -> {
+            try {
+                x.get(Config.POSITION_CALCULATION_RESOLUTION,TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+                x.cancel(false);
+            }
+        });
+        if (!areAllCallsFinished()) {
             stop();
         }
         unbindAxis();
@@ -167,6 +163,7 @@ public class Canal implements Callable {
     }
 
     public void stop() throws InterruptedException {
+        futures.forEach((future)-> future.cancel(false));
         executorService.shutdown();
         executorService.awaitTermination(1, TimeUnit.SECONDS);
     }
@@ -176,12 +173,11 @@ public class Canal implements Callable {
     }
 
 
-    /**
-     * is used to register if the current Program Line in while the Program runs have changed
-     *
-     * @return linenumber
-     */
+    public void brakerunningCode() {
+        brakeRunningCode.set(true);
+    }
 
-
-
+    public void runBrakedCode() {
+        brakeRunningCode.set(false);
+    }
 }

@@ -2,8 +2,7 @@ package ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter;
 
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalDataModel;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCProgramCommand;
-import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistExeption;
+import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
 import ch.dcreations.cncsimulator.cncControl.GCodes.PlainGCode;
@@ -18,9 +17,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-
 import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption.CONSTANT_ROTATION;
 import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption.CONSTANT_SURFACE_SPEED;
+
+/**
+ * <p>
+ * <p>
+ *  CNC Code Decoder decodes a NC - Code Line to a CNC Code Line Command
+ * <p>
+ *
+ * @author Damian www.d-creations.org
+ * @version 1.0
+ * @since 2022-08-18
+ */
 
 public class CNCCodeDecoder {
 
@@ -39,7 +48,7 @@ public class CNCCodeDecoder {
 
             return generateCNCCode(codeWords, gCodes, axisDistance);
         } catch (Exception e) {
-            throw new Exception("GENARATION CODE WAS NOT SUCZESS");
+            throw new Exception("GENERATION CODE WAS NOT SUCCESS");
         }
     }
 
@@ -50,11 +59,11 @@ public class CNCCodeDecoder {
             if (code.length() > 0) {
                 Character codeCommand = checkAndGetCodeWord(code);
                 switch (codeCommand) {
-                    case '%' -> {
-                    }
-                    case 'X', 'Y', 'Z', 'C', 'A', 'B' ->
+                    case '%' -> {}
+                    case 'X', 'Y', 'Z', 'C', 'A', 'B' -> {if (AxisName.get(codeCommand).isPresent()) {
                             axisDistance.put(AxisName.get(codeCommand).get(), getCodeValue(code));
-                    default -> additionalParameterMap.put(codeCommand, getCodeValue(code));
+                        }}
+                        default -> additionalParameterMap.put(codeCommand, getCodeValue(code));
                 }
             }
         }
@@ -100,11 +109,11 @@ public class CNCCodeDecoder {
 
 
 
-    private DoubleProperty getCNCAxisProperty(AxisName axisName) throws AxisOrSpindleDoesNotExistExeption {
+    private DoubleProperty getCNCAxisProperty(AxisName axisName) throws AxisOrSpindleDoesNotExistException {
         if (canalDataModel.getCncAxes().containsKey(axisName)) {
             return canalDataModel.getCncAxes().get(axisName).axisPositionProperty();
         } else {
-            throw new AxisOrSpindleDoesNotExistExeption("AXIS DOES NOT EXIST");
+            throw new AxisOrSpindleDoesNotExistException("AXIS DOES NOT EXIST");
         }
     }
 

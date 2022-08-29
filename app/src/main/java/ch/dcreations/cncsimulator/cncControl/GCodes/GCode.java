@@ -43,13 +43,15 @@ public abstract class GCode {
         return codeNumber;
     }
 
-    public void execute(AtomicBoolean run) throws Exception {
+    public void execute(AtomicBoolean run, AtomicBoolean brakeRunningCode ) throws Exception {
         finished.set(false);
         int timesRuns = 0;
-        while (run.get() && !finished.get()){
+        while (run.get() && !finished.get()) {
             Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION);
-            calculatePosition(timesRuns,Config.POSITION_CALCULATION_RESOLUTION);
-            timesRuns++;
+            if (!brakeRunningCode.get()){
+                calculatePosition(timesRuns, Config.POSITION_CALCULATION_RESOLUTION);
+                timesRuns++;
+            }
         }
         finished.set(true);
     }
