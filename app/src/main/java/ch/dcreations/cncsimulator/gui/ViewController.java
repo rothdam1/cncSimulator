@@ -8,6 +8,7 @@ import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
@@ -64,7 +65,7 @@ public class ViewController {
     private ToggleButton runCNCButton;
 
     @FXML
-    private ToggleButton stopCNCButton;
+    private Button stopCNCButton;
 
     @FXML
     private TextArea WarringTextView;
@@ -139,8 +140,7 @@ public class ViewController {
     @FXML
     public void runCNCButtonClicked(){
 
-        brakeState = false;
-        stopCNCButton.setText("STOP");
+        resetNCControllSwitch();
         WarringTextView.setText("");
         setCNCProgramToControl();
         try {
@@ -148,7 +148,6 @@ public class ViewController {
         }catch (Exception e){
             logger.log(Level.WARNING,e.getMessage());
         }finally {
-            stopCNCButton.setSelected(false);
             runCNCButton.setSelected(true);
             canal1AnchorPane.getChildren().clear();
             canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
@@ -169,37 +168,38 @@ public class ViewController {
 
     @FXML
     public void stopCNCButtonClicked(){
-        stopCNCButton.setText("STOP");
         switchNCCControl();
     }
 
     private boolean brakeState = false;
     private void switchNCCControl() {
-       if(!cncControl.isTheNCRunning()){
+       if(cncControl.isTheNCRunning()){
         if (!brakeState) {
             WarringTextView.setText("");
-            cncControl.stopCNCControl();
             brakeState = true;
-            stopCNCButton.setText("RESTART");
+            stopCNCButton.setText("restart");
+            cncControl.stopCNCControl();
         } else {
-            stopCNCButton.setText("STOP");
-            brakeState = false;
-            WarringTextView.setText("");
-            cncControl.runStoppedCNCControl();
-
+            resetNCControllSwitch();
         }
     }
+    }
+
+    private void resetNCControllSwitch(){
+        stopCNCButton.setText("stop");
+        brakeState = false;
+        WarringTextView.setText("");
+        cncControl.runStoppedCNCControl();
+
     }
 
 
 
     @FXML
     public void resetCNCButtonClicked(){
-
-        brakeState = false;
+        resetNCControllSwitch();
         WarringTextView.setText("");
         runCNCButton.setSelected(false);
-        stopCNCButton.setSelected(false);
         try {
             cncControl.stopCNCProgram();
         }catch (Exception e){
@@ -209,7 +209,6 @@ public class ViewController {
             canal1AnchorPane.getChildren().add(textAreaCanal1);
             canal2AnchorPane.getChildren().clear();
             canal2AnchorPane.getChildren().add(textAreaCanal2);
-            stopCNCButton.setSelected(false);
         }
     }
 

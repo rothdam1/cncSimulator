@@ -158,13 +158,13 @@ public class CNCControl {
     }
 
     public boolean isTheNCRunning() {
-        boolean allCallsFinished = true;
+        boolean allCallsStillRunning = false;
         for (Future<Boolean> call : CNCCanalExecuteFuture){
             if (!call.isDone()) {
-                allCallsFinished = false;
+                allCallsStillRunning = true;
             }
         }
-        return allCallsFinished;
+        return allCallsStillRunning;
     }
 
     public void runStoppedCNCControl() {
