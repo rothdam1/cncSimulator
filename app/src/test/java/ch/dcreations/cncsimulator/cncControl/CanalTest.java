@@ -1,12 +1,9 @@
 package ch.dcreations.cncsimulator.cncControl;
 
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
+import ch.dcreations.cncsimulator.TestConfig;
 import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalState;
 import org.junit.jupiter.api.Test;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.FutureTask;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,25 +46,27 @@ class CanalTest {
     @Test
     void run() {
         // 1_1    TEST RUN STATE -> RUN  WITH EMPTY PROGRAM
-        Canal canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
+        Canal canal = new Canal(TestConfig.GET_CNC_AXIS_CANAL1(),TestConfig.GET_CNC_SPINDLES_CANAL1());
         canal.setCanalState(CanalState.RUN);
         canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_1 TEST RUN STATE -> RUN  WITH EMPTY PROGRAM");
         // 1_2    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM
         canal.setProgram(sampleProgram);
         canal.call();
-        assertEquals(2,canal.programLinePositionProperty().get(),"CanalTest -> 1_2 TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM   ");
+        assertEquals(4,canal.programLinePositionProperty().get(),"CanalTest -> 1_2 TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM   ");
         // 1_3    TEST RUN STATE -> SINGLE STEP  WITH EMPTY PROGRAM
-        canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
+        canal = new Canal(TestConfig.GET_CNC_AXIS_CANAL1(),TestConfig.GET_CNC_SPINDLES_CANAL1());
         canal.setCanalState(CanalState.SINGLE_STEP);
         canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_3    TEST RUN STATE -> SINGLE STEP  WITH EMPTY PROGRAM");
         // 1_4    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM
+        canal = new Canal(TestConfig.GET_CNC_AXIS_CANAL1(),TestConfig.GET_CNC_SPINDLES_CANAL1());
+        canal.setCanalState(CanalState.SINGLE_STEP);
         canal.setProgram(sampleProgram);
         canal.call();
         assertEquals(1,canal.programLinePositionProperty().get(),"CanalTest ->  1_4    TEST RUN STATE -> RUN  WITH SAMPLE PROGRAM");
         // 1_5    TEST RUN STATE -> STOP  WITH EMPTY PROGRAM
-        canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
+        canal = new Canal(TestConfig.GET_CNC_AXIS_CANAL1(),TestConfig.GET_CNC_SPINDLES_CANAL1());
         canal.setCanalState(CanalState.STOP);
         canal.call();
         assertEquals(0,canal.programLinePositionProperty().get(),"CanalTest -> 1_5    TEST RUN STATE -> STOP  WITH EMPTY PROGRAM ");
@@ -79,7 +78,7 @@ class CanalTest {
 
     @Test
     void setCanalState() {
-        Canal canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
+        Canal canal = new Canal(TestConfig.GET_CNC_AXIS_CANAL1(),TestConfig.GET_CNC_SPINDLES_CANAL1());
         canal.setCanalState(CanalState.RUN);
         //2_1 Check SET to RUN
         assertEquals(CanalState.RUN,canal.getCanalState(),"CanalTest  -> 2_1 Check SET to RUN" );
@@ -95,10 +94,10 @@ class CanalTest {
 
     @Test
     void stopRunning() throws InterruptedException {
-        Canal canal = new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles);
+        Canal canal = new Canal(TestConfig.GET_CNC_AXIS_CANAL1(),TestConfig.GET_CNC_SPINDLES_CANAL1());
         canal.setProgram(sampleProgram);
         //3_1 TEST THREAD STOP WORKS
-        assertFalse(canal.getCanalRunState().get(),"CanalTest  -> 3_1 TEST THREAD STOP WORKS");
+        assertFalse(canal.getCanalRunState(),"CanalTest  -> 3_1 TEST THREAD STOP WORKS");
         Thread thread = new Thread(new FutureTask<>(canal));
         thread.start();
         canal.stopRunning();
@@ -108,15 +107,8 @@ class CanalTest {
     }
 
 
-    private static List<CNCAxis> GET_CNC_AXIS_CANAL1(){
-        List<CNCAxis> cncAxes = new ArrayList<>();
-        cncAxes.add(new CNCAxis(AxisName.X));
-        cncAxes.add(new CNCAxis(AxisName.Y));
-        cncAxes.add(new CNCAxis(AxisName.Z));
-        cncAxes.add(new CNCAxis(AxisName.C));
-        return cncAxes;
-    }
 
-    private final static String sampleProgram = "O0001;\nG01X3R3;G3Y3";
+
+    private final static String sampleProgram = "O0001;\nG98;G01X3R3;\nG1Y3";
 
 }

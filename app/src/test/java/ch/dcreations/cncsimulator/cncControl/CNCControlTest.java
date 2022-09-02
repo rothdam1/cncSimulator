@@ -1,5 +1,6 @@
 package ch.dcreations.cncsimulator.cncControl;
 
+import ch.dcreations.cncsimulator.TestConfig;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
@@ -7,7 +8,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
 /**
  * <p>
@@ -51,19 +55,17 @@ class CNCControlTest {
     CNCControl cncControl ;
     @BeforeEach
     void setUp() {
-        cncControl = new CNCControl(GET_CNC_CANALS());
+        cncControl = new CNCControl(TestConfig.GET_CNC_CANALS());
     }
 
     @Test
     void getCncAxes() {
         //1_1 CHECK THAT THE AXIS ADDED GET WEN USE FUNCTION GET CNC AXIS
         cncControl.getCncAxes();
-        List<CNCAxis> cncAxesExpected  = new ArrayList<>();
-        cncAxesExpected.addAll(GET_CNC_AXIS_CANAL1());
-        cncAxesExpected.addAll(GET_CNC_AXIS_CANAL2());
-        for (int i = 0  ; i<cncControl.getCncAxes().size();i++){
-            assertEquals(cncControl.getCncAxes().get(i).getAxisName(),cncAxesExpected.get(i).getAxisName(),"CNCControl Test -> 1_1 CHECK THAT THE AXIS ADDED GET WEN USE FUNCTION GET CNC AXIS");
-        }
+        Map<AxisName,CNCAxis> cncAxesExpected  = new HashMap<>();
+        cncAxesExpected.putAll(TestConfig.GET_CNC_AXIS_CANAL1());
+        cncAxesExpected.putAll(TestConfig.GET_CNC_AXIS_CANAL2());
+        assertEquals(cncAxesExpected.size(),cncControl.getCncAxes().size(),"CNCControl Test -> 1_1 CHECK THAT THE AXIS ADDED GET WEN USE FUNCTION GET CNC AXIS");
     }
 
 
@@ -72,7 +74,7 @@ class CNCControlTest {
     void setAndGetCanal1CNCProgramText() {
         //2_1 Check that Program is written in the CNC Control if the Canal exist and don't make an exception
         assertDoesNotThrow(() -> cncControl.setCanal1CNCProgramText(sampleProgram),"CNCControl Test ->2_1 Check that Program is written in the CNC Control if the Canal exist and don't make an exception");
-        assertDoesNotThrow(() -> assertEquals(sampleProgram,cncControl.getCanal1CNCProgramText()),"CNCControl Test ->2_1 Check that Program is written in the CNC Control if the Canal exist and don't make an exception");
+        assertDoesNotThrow(() -> assertEquals(sampleProgram+";\n%",cncControl.getCanal1CNCProgramText()),"CNCControl Test ->2_1 Check that Program is written in the CNC Control if the Canal exist and don't make an exception");
         //2_2 Check that Program is written make a IOException if canal 1 does not exist
         CNCControl cncControlWithZeroCanals = new CNCControl(new ArrayList<>());
         assertThrows(IOException.class,() -> cncControlWithZeroCanals.setCanal1CNCProgramText(sampleProgram),"2_2 Check that Program is written make a IOException if canal 1 does not exist");
@@ -95,7 +97,7 @@ class CNCControlTest {
     @Test
     void RunAndStopCNCProgram() {
         //4_1 TEST if run set CNCState to run
-        cncControl.runCNCProgram();
+        assertDoesNotThrow(()-> cncControl.runCNCProgram());
         assertEquals(CNCState.RUN,cncControl.getCncRunState(),"CNCControl Test -> TEST 4_1  TEST if run set CNCState to ru ");
         //4_2 TEST if stop set CNCState to Stop and does not throw an Exception
         assertDoesNotThrow(() -> cncControl.stopCNCProgram());
@@ -104,14 +106,15 @@ class CNCControlTest {
 
 
     @Test
-    void goToNextStepCNCProgram() {
+    void goToNextStepCNCProgram() throws InterruptedException {
         assertDoesNotThrow(()->cncControl.setCanal1CNCProgramText(sampleProgram),"CNCControl Test -> 5_1 check that at start is at line 0");
         assertDoesNotThrow(()->cncControl.setCanal2CNCProgramText(sampleProgram),"CNCControl Test -> 5_1 check that at start is at line 0");
         //5_1 check that at start is at line 0
         assertEquals(0,cncControl.getCanalLinePositionAsObservables(0).get(),"CNCControl Test -> 5_1 check that at start is at line 0");
         assertEquals(0,cncControl.getCanalLinePositionAsObservables(1).get(),"CNCControl Test -> 5_1 check that at start is at line 0");
         //5_2 check that after goToNExtStepCNC  is at line 1
-        cncControl.goToNextStepCNCProgram();
+        assertDoesNotThrow(()-> cncControl.goToNextStepCNCProgram(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
+        // next line is not finished
         assertEquals(1,cncControl.getCanalLinePositionAsObservables(0).get(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
         assertEquals(1,cncControl.getCanalLinePositionAsObservables(1).get(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
     }
@@ -122,31 +125,6 @@ class CNCControlTest {
         assertDoesNotThrow( () -> cncControl.terminateCNCControl(),"CNCControl Test -> 6_1 Check that function work without alarm");
     }
 
-
-    private static List<CNCAxis> GET_CNC_AXIS_CANAL1(){
-        List<CNCAxis> cncAxes = new ArrayList<>();
-        cncAxes.add(new CNCAxis(AxisName.X));
-        cncAxes.add(new CNCAxis(AxisName.Y));
-        cncAxes.add(new CNCAxis(AxisName.Z));
-        cncAxes.add(new CNCAxis(AxisName.C));
-        return cncAxes;
-    }
-
-    private static List<CNCAxis> GET_CNC_AXIS_CANAL2(){
-        List<CNCAxis> cncAxes = new ArrayList<>();
-        cncAxes.add(new CNCAxis(AxisName.X));
-        cncAxes.add(new CNCAxis(AxisName.Y));
-        cncAxes.add(new CNCAxis(AxisName.Z));
-        cncAxes.add(new CNCAxis(AxisName.C));
-        return cncAxes;
-    }
-
-    private static List<Canal> GET_CNC_CANALS() {
-        List<Canal> cncCanals = new ArrayList<>();
-        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL1(), cncSpindles));
-        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL2(), cncSpindles));
-        return cncCanals;
-    }
 
     private final static String sampleProgram = "O0001;\nG1 X4.0;\nG4 Y4";
 }

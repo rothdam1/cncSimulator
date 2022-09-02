@@ -180,4 +180,12 @@ public class Canal implements Callable<Boolean> {
     public void runBrakedCode() {
         brakeRunningCode.set(false);
     }
+
+    public CanalState getCanalState() {
+        return canalDataModel.getCanalState();
+    }
+
+    public boolean getCanalRunState() {
+       return canalDataModel.getCanalRunState().get();
+    }
 }

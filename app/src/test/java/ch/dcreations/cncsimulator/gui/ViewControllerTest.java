@@ -1,5 +1,6 @@
 package ch.dcreations.cncsimulator.gui;
 
+import ch.dcreations.cncsimulator.TestConfig;
 import ch.dcreations.cncsimulator.cncControl.CNCControl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +10,7 @@ import static org.mockito.Mockito.*;
 
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import static org.junit.jupiter.api.Assertions.*;
+
 /**
  * <p>
  * <p>

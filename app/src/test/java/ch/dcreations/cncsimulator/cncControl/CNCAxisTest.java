@@ -30,15 +30,10 @@ class CNCAxisTest {
     CNCAxis cncAxis;
     @BeforeEach
     void setUp() {
-        cncAxis = new CNCAxis(AxisName.X);
+        cncAxis = new CNCAxis();
     }
 
 
-    @Test
-    void getAxisName() {
-        //1_1 CHECK THAT AXIS NAME IS RIGHT
-        assertEquals(AxisName.X,cncAxis.getAxisName(),"CNCAxis Test -> 1_1 Check that name is right");
-    }
 
     @Test
     void getAxisPosition() {
