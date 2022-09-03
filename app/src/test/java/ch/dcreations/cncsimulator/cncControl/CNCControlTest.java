@@ -3,13 +3,11 @@ package ch.dcreations.cncsimulator.cncControl;
 import ch.dcreations.cncsimulator.TestConfig;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
-import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,11 +59,10 @@ class CNCControlTest {
     @Test
     void getCncAxes() {
         //1_1 CHECK THAT THE AXIS ADDED GET WEN USE FUNCTION GET CNC AXIS
-        cncControl.getCncAxes();
         Map<AxisName,CNCAxis> cncAxesExpected  = new HashMap<>();
         cncAxesExpected.putAll(TestConfig.GET_CNC_AXIS_CANAL1());
         cncAxesExpected.putAll(TestConfig.GET_CNC_AXIS_CANAL2());
-        assertEquals(cncAxesExpected.size(),cncControl.getCncAxes().size(),"CNCControl Test -> 1_1 CHECK THAT THE AXIS ADDED GET WEN USE FUNCTION GET CNC AXIS");
+        assertEquals(cncAxesExpected.size(),cncControl.getCncAxes().get(0).size(),"CNCControl Test -> 1_1 CHECK THAT THE AXIS ADDED GET WEN USE FUNCTION GET CNC AXIS");
     }
 
 
@@ -85,7 +82,7 @@ class CNCControlTest {
     void setAndGetCanal2CNCProgramText() {
         //3_1 Check that Program is written in the CNC Control if the Canal exist and don't make an exception
         assertDoesNotThrow(() -> cncControl.setCanal2CNCProgramText(sampleProgram),"CNCControl Test -> 3_1 Check that Program is written in the CNC Control if the Canal exist and don't make a exception");
-        assertDoesNotThrow(() -> assertEquals(sampleProgram,cncControl.getCanal2CNCProgramText()),"CNCControl Test -> 3_1 Check that Program is written in the CNC Control if the Canal exist and don't make a exception");
+        assertDoesNotThrow(() -> assertEquals(sampleProgram+";\n%",cncControl.getCanal2CNCProgramText()),"CNCControl Test -> 3_1 Check that Program is written in the CNC Control if the Canal exist and don't make a exception");
         //3_2 Check that Program is written make a IOException if canal 1 does not exist
         CNCControl cncControlWithZeroCanals = new CNCControl(new ArrayList<>());
         assertThrows(IOException.class,() -> cncControlWithZeroCanals.setCanal2CNCProgramText(sampleProgram),"CNCControl Test -> 3_2 Check that Program is written make a IOException if canal 1 does not exist");
@@ -106,7 +103,7 @@ class CNCControlTest {
 
 
     @Test
-    void goToNextStepCNCProgram() throws InterruptedException {
+    void goToNextStepCNCProgram()  {
         assertDoesNotThrow(()->cncControl.setCanal1CNCProgramText(sampleProgram),"CNCControl Test -> 5_1 check that at start is at line 0");
         assertDoesNotThrow(()->cncControl.setCanal2CNCProgramText(sampleProgram),"CNCControl Test -> 5_1 check that at start is at line 0");
         //5_1 check that at start is at line 0
@@ -114,7 +111,7 @@ class CNCControlTest {
         assertEquals(0,cncControl.getCanalLinePositionAsObservables(1).get(),"CNCControl Test -> 5_1 check that at start is at line 0");
         //5_2 check that after goToNExtStepCNC  is at line 1
         assertDoesNotThrow(()-> cncControl.goToNextStepCNCProgram(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
-        // next line is not finished
+        assertDoesNotThrow(() -> cncControl.waitUntilAllCanalsFinished(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
         assertEquals(1,cncControl.getCanalLinePositionAsObservables(0).get(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
         assertEquals(1,cncControl.getCanalLinePositionAsObservables(1).get(),"CNCControl Test -> 5_2 check that after goToNExtStepCNC  is at line 1");
     }
@@ -126,5 +123,5 @@ class CNCControlTest {
     }
 
 
-    private final static String sampleProgram = "O0001;\nG1 X4.0;\nG4 Y4";
+    private final static String sampleProgram = "O0001;\nG98;\nG1X0.1F2000.;\nG1 Y1.1F3000";
 }

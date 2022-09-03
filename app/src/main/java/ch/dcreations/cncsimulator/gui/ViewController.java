@@ -197,7 +197,6 @@ public class ViewController {
 
     @FXML
     public void resetCNCButtonClicked(){
-        resetNCControllSwitch();
         WarringTextView.setText("");
         runCNCButton.setSelected(false);
         try {
@@ -209,6 +208,7 @@ public class ViewController {
             canal1AnchorPane.getChildren().add(textAreaCanal1);
             canal2AnchorPane.getChildren().clear();
             canal2AnchorPane.getChildren().add(textAreaCanal2);
+            //resetNCControllSwitch();
         }
     }
 

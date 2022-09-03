@@ -33,7 +33,6 @@ public class Canal implements Callable<Boolean> {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final List<Future<Boolean>> futures = new ArrayList<>();
-
     private CanalDataModel canalDataModel;
     private int countOfProgramLines = 0;
     private String cncProgramText = "";
@@ -57,6 +56,7 @@ public class Canal implements Callable<Boolean> {
             if (cncProgramText != null) {
                 String[] lines = cncProgramText.replace("\n", "").split(";");
                 countOfProgramLines = lines.length;
+                canalDataModel.setCanalRunState(true);
                 switch (canalDataModel.getCanalState()) {
                     case SINGLE_STEP -> runNextLine(lines[programLinePosition.get()]);
                     case RUN -> runAllLines(lines);
@@ -117,7 +117,6 @@ public class Canal implements Callable<Boolean> {
     }
 
     synchronized private void executeNCCommand(CNCProgramCommand cncProgramCommand) {
-        canalDataModel.setCanalRunState(true);
         Callable callable = new CNCCodeExecutes(cncProgramCommand,canalDataModel,brakeRunningCode);
         futures.add(executorService.submit(callable));
 

@@ -1,6 +1,4 @@
 package ch.dcreations.cncsimulator.cncControl;
-
-import static org.junit.jupiter.api.Assertions.*;
 /**
  * <p>
  * <p>

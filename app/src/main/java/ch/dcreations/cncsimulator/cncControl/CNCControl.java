@@ -167,6 +167,12 @@ public class CNCControl {
         return allCallsStillRunning;
     }
 
+    public void waitUntilAllCanalsFinished() throws ExecutionException, InterruptedException {
+        for (Future<Boolean> call : CNCCanalExecuteFuture) {
+            call.get();
+        }
+    }
+
     public void runStoppedCNCControl() {
         canals.stream().forEach((x) -> x.runBrakedCode());
     }
