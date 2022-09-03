@@ -22,6 +22,10 @@ public class G02_03 extends GCodeMove {
     double distance = 0;
     Plane plane;
 
+    double radius = 0;
+
+    double degree = 0;
+
     public G02_03(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Map<AxisName,Double> parameter, Map<Character, Double> additionalParameterMap, Plane plane) throws Exception {
         super(codeNumber, feedOptions, spindleSpeed, startPosition,feed,new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()),parameter);
         this.additionalParameterMap = additionalParameterMap;
@@ -32,14 +36,54 @@ public class G02_03 extends GCodeMove {
     private void setupParameterForCircle() throws IllegalFormatOfGCodeException {
         checkCircleParameter();
         calculateParameter();
-        caculateDegree();
+        degree = caculateDegree();
+        distance =( (radius*2*Math.PI)*degree/360);
     }
 
-    private void caculateDegree() {
+    private double caculateDegree() {
+        double x1=0, y1=0, x2=0, y2=0,xC=0,yC=0;
+        switch (plane){
+            case G17 -> {
+                x1 = startPosition.getX();
+                y1 = startPosition.getY();
+                x2 = endPosition.getX();
+                y2 = endPosition.getY();
+                xC = additionalParameterMap.get('I');
+                yC = additionalParameterMap.get('J');
+            }
+            case G18 -> {
+                x1 = startPosition.getX();
+                y1 = startPosition.getZ();
+                x2 = endPosition.getX();
+                y2 = endPosition.getZ();
+                xC = additionalParameterMap.get('I');
+                yC = additionalParameterMap.get('K');
+            }
+            case G19 -> {
+                y1 = startPosition.getY();
+                y1 = startPosition.getZ();
+                x2 = endPosition.getY();
+                y2 = endPosition.getZ();
+                xC = additionalParameterMap.get('J');
+                yC = additionalParameterMap.get('K');
+            }
+        }
+        double top = (x1-xC)*(x2-xC)+(y1-yC)*(y2-yC);
+        double down1 = Math.sqrt((x1-xC)*(x1-xC)+(y1-yC)*(y1-yC));
+        double down2 = Math.sqrt((x2-xC)*(x2-xC)+(y2-yC)*(y2-yC));
+        double angle =  Math.acos(top/(down1*down2));
+        radius = Math.sqrt(xC*xC+yC*yC);
+        angle = (directionAngle() == true) ? angle : 360-angle;
+        return angle;
+    }
+
+    private boolean directionAngle() {
+        return (codeNumber == 2) ? true : false;
     }
 
     private void calculateParameter() {
         if (additionalParameterMap.containsKey('R')) {
+            int direction = (codeNumber == 2) ? 1 : -1;
             double x = endPosition.getX()-startPosition.getX();
             double y = endPosition.getY()-startPosition.getY();
             double z = endPosition.getZ()-startPosition.getZ();
@@ -49,8 +93,8 @@ public class G02_03 extends GCodeMove {
                     double legA =  Math.sqrt(x*x+y*y)/2;
                     double legB = Math.sqrt(legC*legC-legA*legA);
                     double multiplicatior =legC/ (legC - legB);
-                    additionalParameterMap.put('I',multiplicatior*(x/2));
-                    additionalParameterMap.put('J',multiplicatior*(x/2));
+                    additionalParameterMap.put('I',direction*multiplicatior*(x/2));
+                    additionalParameterMap.put('J',direction*multiplicatior*(x/2));
                     }
                 case G18 -> {
                     double legA =  Math.sqrt(x*x+z*z)/2;
@@ -101,6 +145,7 @@ public class G02_03 extends GCodeMove {
             if (countOfCalculations < timesRuns) {
                 finished.set(true);
             }else {
+
                 axisPosition.setX(startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns));
                 axisPosition.setY(startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns));
                 axisPosition.setZ(startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns));
