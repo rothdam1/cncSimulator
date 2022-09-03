@@ -1,13 +1,12 @@
 package ch.dcreations.cncsimulator.cncControl.Canal;
 
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCSpindle;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.SpindelNames;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.*;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.layout.Pane;
+
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -24,10 +23,12 @@ public class CanalDataModel {
     private boolean RunLineIsCompleted = false;
     private final Map<SpindelNames, CNCSpindle> cncSpindles;
     private CanalState canalState = CanalState.STOP;
+    private Plane plane;
 
-    public CanalDataModel(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles) {
+    public CanalDataModel(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles,Plane plane) {
         this.cncAxes = cncAxes;
         this.cncSpindles = cncSpindles;
+        this.plane = plane;
     }
 
     public CNCSpindle getCurrentSelectedSpindle() {
@@ -99,6 +100,11 @@ public class CanalDataModel {
     }
 
 
+    public Plane getPlane() {
+        return plane;
+    }
 
-
+    public void setPlane(Plane plane) {
+        this.plane = plane;
+    }
 }

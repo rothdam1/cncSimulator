@@ -3,10 +3,7 @@ package ch.dcreations.cncsimulator.cncControl.Canal;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeDecoder;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeExecutes;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCProgramCommand;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCSpindle;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.SpindelNames;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.*;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -16,7 +13,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 /**
  * <p>
  * <p>
@@ -36,14 +32,14 @@ public class Canal implements Callable<Boolean> {
     private CanalDataModel canalDataModel;
     private int countOfProgramLines = 0;
     private String cncProgramText = "";
-    private AtomicBoolean brakeRunningCode = new AtomicBoolean(false);
-    private SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
+    private final AtomicBoolean brakeRunningCode = new AtomicBoolean(false);
+    private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
     boolean RunLineIsCompleted = false;
 
     public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles) {
         super();
         try {
-            canalDataModel = new CanalDataModel(cncAxes,cncSpindles);
+            canalDataModel = new CanalDataModel(cncAxes,cncSpindles,Plane.G18);
             canalDataModel.setCurrentSelectedSpindle(SpindelNames.S1);
         } catch (Exception e) {
             logger.log(Level.WARNING, e.getMessage());
@@ -186,5 +182,16 @@ public class Canal implements Callable<Boolean> {
 
     public boolean getCanalRunState() {
        return canalDataModel.getCanalRunState().get();
+    }
+
+    public boolean isCanalRunning() {
+        boolean allCallsFinished = false;
+        for (Future<Boolean> call : futures) {
+            if (!call.isDone()) {
+              //  logger.log(Level.INFO, "CALL IS NOT FINISHED");
+                allCallsFinished = true;
+            }
+        }
+        return allCallsFinished;
     }
 }

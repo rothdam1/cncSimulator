@@ -159,10 +159,8 @@ public class CNCControl {
 
     public boolean isTheNCRunning() {
         boolean allCallsStillRunning = false;
-        for (Future<Boolean> call : CNCCanalExecuteFuture){
-            if (!call.isDone()) {
-                allCallsStillRunning = true;
-            }
+        for (Canal canal : canals){
+            if(canal.isCanalRunning())allCallsStillRunning = true;
         }
         return allCallsStillRunning;
     }

@@ -208,7 +208,7 @@ public class ViewController {
             canal1AnchorPane.getChildren().add(textAreaCanal1);
             canal2AnchorPane.getChildren().clear();
             canal2AnchorPane.getChildren().add(textAreaCanal2);
-            //resetNCControllSwitch();
+            resetNCControllSwitch();
         }
     }
 
