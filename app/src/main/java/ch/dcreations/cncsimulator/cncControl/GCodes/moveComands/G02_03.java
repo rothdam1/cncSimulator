@@ -100,8 +100,8 @@ public class G02_03 extends GCodeMove {
                     double legA =  Math.sqrt(x*x+z*z)/2;
                     double legB = Math.sqrt(legC*legC-legA*legA);
                     double multiplicatior =legC/ (legC - legB);
-                    additionalParameterMap.put('I',multiplicatior*(x/2));
-                    additionalParameterMap.put('K',multiplicatior*(x/2));
+                    additionalParameterMap.put('I',(x/2)+multiplicatior*(z/2));
+                    additionalParameterMap.put('K',(z/2)+multiplicatior*(x/2));
                 }
                 case G19 -> {
                     double legA =  Math.sqrt(z*z+y*y)/2;
@@ -145,10 +145,26 @@ public class G02_03 extends GCodeMove {
             if (countOfCalculations < timesRuns) {
                 finished.set(true);
             }else {
+                double degreeToMove = degree/countOfCalculations*timesRuns;
+                switch (plane){
+                    case G17 -> {
+                        axisPosition.setX(startPosition.getX()+(Math.sin(degreeToMove)*radius));
+                        axisPosition.setY(startPosition.getY()+(Math.sin(degreeToMove)*radius));
+                        axisPosition.setZ(startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns));
+                    }
+                    case G18 -> {
+                        axisPosition.setX(startPosition.getX()+(Math.sin(degreeToMove)*radius));
+                        axisPosition.setZ(startPosition.getZ()+(Math.sin(degreeToMove)*radius));
+                        axisPosition.setY(startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns));
+                    }
+                    case G19 -> {
+                        axisPosition.setY(startPosition.getY()+(Math.sin(degreeToMove)*radius));
+                        axisPosition.setZ(startPosition.getZ()+(Math.sin(degreeToMove)*radius));
+                        axisPosition.setX(startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns));
+                    }
 
-                axisPosition.setX(startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns));
-                axisPosition.setY(startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns));
-                axisPosition.setZ(startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns));
+
+                }
             }
             //logger.log(Level.INFO,"DISTANCE CACULATET"+startPosition.getX());
         }
