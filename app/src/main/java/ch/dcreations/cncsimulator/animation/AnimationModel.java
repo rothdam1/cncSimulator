@@ -71,8 +71,9 @@ public class AnimationModel {
     public void createNewLine(Axis axis){
         StraightLine straightLine = new StraightLine(new Axis(axis.getColor(),axis.getStartX(),axis.getStartY(),axis.getStartZ(),axis.getEndX(),axis.getEndY(),axis.getEndZ()),new Line(),offset);
         bodyList.add(straightLine);
-        Platform.runLater(()-> drawingPane.getChildren().add(straightLine.getDrawingLine()));
         Platform.runLater(()-> update());
+        Platform.runLater(()-> drawingPane.getChildren().add(straightLine.getDrawingLine()));
+
     }
 
     public void zoomPlus() {
@@ -87,18 +88,6 @@ public class AnimationModel {
         roomMatrix.zoom(1);
     }
 
-    public void updateLast(double xPos, double yPos, double mouseX, double mouseY) {
-        StraightLine straightLine = bodyList.get(bodyList.size()-1);
-        straightLine.setViewAxis(straightLine.getBaseAxis().getStartX(),straightLine.getBaseAxis().getStartY(), 0,mouseX- offset.getxOffset(),mouseY- offset.getyOffset(),0);
-        straightLine.updateAxis();
-    }
-
-    public void updateLastStrightLine(double xPos, double yPos, double mouseX, double mouseY) {
-        StraightLine straightLine = bodyList.get(bodyList.size()-1);
-        straightLine.setViewAxis(straightLine.getBaseAxis().getStartX(),straightLine.getBaseAxis().getStartY(), 0,mouseX- offset.getxOffset(),mouseY- offset.getyOffset(),0);
-        straightLine.setBaseAxis(roomMatrix.drawInverseBody(straightLine.getViewAxis()));
-        update();
-    }
 
     public void moveYAxis(double distance) {
         offset.setyOffset(offset.getyOffset()+distance) ;

@@ -15,7 +15,7 @@ public class StraightLine {
             this.offset = offset;
             this.baseAxis = baseAxis;
             this.drawingLine = drawingLine;
-            this.viewAxis = new Axis(baseAxis.getColor(),baseAxis.getStartX(), baseAxis.getStartY(), baseAxis.getStartZ(), baseAxis.getEndX(), baseAxis.getEndY(), baseAxis.getEndZ());
+            this.viewAxis =  new Axis(baseAxis.getColor(),baseAxis.getStartX(), baseAxis.getStartY(), baseAxis.getStartZ(), baseAxis.getEndX(), baseAxis.getEndY(), baseAxis.getEndZ());
             updateAxis();
       }
 
