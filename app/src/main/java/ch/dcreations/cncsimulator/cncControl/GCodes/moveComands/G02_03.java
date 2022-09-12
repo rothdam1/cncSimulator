@@ -1,5 +1,6 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
+import ch.dcreations.cncsimulator.animation.Axis;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.Plane;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.IllegalFormatOfGCodeException;
@@ -9,6 +10,7 @@ import ch.dcreations.cncsimulator.config.Calculator;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
+import javafx.scene.paint.Color;
 
 import java.util.Map;
 import java.util.logging.Logger;
@@ -151,6 +153,14 @@ public class G02_03 extends GCodeMove {
                 finished.set(true);
             }else {
                 double degreeToMove = degree/countOfCalculations*timesRuns;
+                double lineStartX = axisPosition.getX();
+                double lineStartY = axisPosition.getY();
+                double lineStartZ = axisPosition.getZ();
+                if (animationModelOptional.isPresent()){
+                    lineStartX = axisPosition.getX();
+                    lineStartY = axisPosition.getY();
+                    lineStartZ = axisPosition.getZ();
+                }
                 switch (plane){
                     case G17 -> {
                         // rotate Vector with Angle
@@ -185,11 +195,13 @@ public class G02_03 extends GCodeMove {
                         axisPosition.setZ(startPosition.getZ()+zMove);
                         axisPosition.setX(startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns));
                     }
+                }
+                if (animationModelOptional.isPresent()){
 
+                    animationModelOptional.get().createNewLine(new Axis(Color.BLACK, lineStartX, lineStartY, lineStartZ, axisPosition.getX(), axisPosition.getY(), axisPosition.getZ()));
 
                 }
             }
-            //logger.log(Level.INFO,"DISTANCE CACULATET"+startPosition.getX());
         }
     }
 }

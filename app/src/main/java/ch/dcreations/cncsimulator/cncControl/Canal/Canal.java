@@ -1,5 +1,6 @@
 package ch.dcreations.cncsimulator.cncControl.Canal;
 
+import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeDecoder;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeExecutes;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCProgramCommand;
@@ -36,6 +37,7 @@ public class Canal implements Callable<Boolean> {
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
     boolean RunLineIsCompleted = false;
 
+    private Optional<AnimationModel> animationModelOptional = Optional.empty() ; ;
     public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles) {
         super();
         try {
@@ -113,7 +115,7 @@ public class Canal implements Callable<Boolean> {
     }
 
     synchronized private void executeNCCommand(CNCProgramCommand cncProgramCommand) {
-        Callable callable = new CNCCodeExecutes(cncProgramCommand,canalDataModel,brakeRunningCode);
+        Callable callable = new CNCCodeExecutes(cncProgramCommand,canalDataModel,brakeRunningCode,animationModelOptional);
         futures.add(executorService.submit(callable));
 
     }
@@ -193,5 +195,9 @@ public class Canal implements Callable<Boolean> {
             }
         }
         return allCallsFinished;
+    }
+
+    public void addAnimationModel(AnimationModel animationModel) {
+        animationModelOptional =  Optional.of(animationModel);
     }
 }

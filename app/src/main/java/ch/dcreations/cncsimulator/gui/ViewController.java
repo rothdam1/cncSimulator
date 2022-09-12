@@ -1,4 +1,6 @@
 package ch.dcreations.cncsimulator.gui;
+import ch.dcreations.cncsimulator.animation.StraightLine;
+import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.CNCControl;
@@ -12,7 +14,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
@@ -71,6 +75,14 @@ public class ViewController {
     private TextArea WarringTextView;
 
     @FXML
+    private Pane cncAnimationView;
+
+    private double xPos = 0;
+    private double yPos = 0;
+
+    private AnimationModel animationModel;
+;
+    @FXML
     public void initialize() {
        initialize(new Config(),new CNCControl(Config.GET_CNC_CANALS()));
     }
@@ -100,6 +112,14 @@ public class ViewController {
 
             }
         });
+
+        animationModel = new AnimationModel(cncAnimationView);
+        cncControl.setAnimationView(animationModel);
+    }
+
+    public void initializeAnimation() {
+        animationModel.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
+        animationModel.update();
     }
 
 
@@ -111,7 +131,56 @@ public class ViewController {
         }
 
     }
+    @FXML
+    private void mouseHandler(MouseEvent event) {
 
+                if (event.isSecondaryButtonDown()){
+                    double diff = getMouseX(event) - xPos;
+                    animationModel.moveXAxis((diff) );
+                    xPos = getMouseX(event);
+                    diff = getMouseY(event) - yPos;
+                    animationModel.moveYAxis((diff) );
+                    yPos = getMouseY(event);
+                }else {
+                    double diff = getMouseX(event) - xPos;
+                    animationModel.rotateYAxis((diff) * 1);
+                    xPos = getMouseX(event);
+                    diff = getMouseY(event) - yPos;
+                    animationModel.rotateXAxis((diff) * -1);
+                    yPos = getMouseY(event);
+                }
+    }
+
+    @FXML
+    private void mouseClickedOnPanel(MouseEvent event) {
+        xPos = getMouseX(event);
+        yPos = getMouseY(event);
+    }
+    @FXML
+    private void zoomPlus() {
+        animationModel.zoomPlus();
+    }
+
+
+    @FXML
+    private void zoomMinus() {
+        animationModel.zoomMinus();
+    }
+
+    @FXML
+    private void centerView() {
+        animationModel.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
+        animationModel.resetView();
+    }
+
+    private double getMouseX(MouseEvent event) {
+        return event.getX();
+    }
+
+
+    private double getMouseY(MouseEvent event) {
+        return event.getY();
+    }
 
     @FXML
     public void loadSampleProgram() {
@@ -190,7 +259,8 @@ public class ViewController {
         brakeState = false;
         WarringTextView.setText("");
         cncControl.runStoppedCNCControl();
-
+        animationModel.deleteAll();
+        animationModel.resetView();
     }
 
 

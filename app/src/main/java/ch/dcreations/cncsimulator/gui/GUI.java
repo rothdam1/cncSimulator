@@ -41,6 +41,7 @@ public class GUI extends Application {
             primaryStage.setOnCloseRequest(event -> controller.closeController());
             primaryStage.setTitle("CNC-Simulator");
             primaryStage.show();
+            controller.initializeAnimation();
         } catch (Exception e) {
             logger.log(Level.WARNING,"Error starting up UI " + e.getMessage() + e);
         }

@@ -1,5 +1,6 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
+import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
@@ -10,6 +11,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class GCodeMove extends GCode {
     protected Position axisPosition ;
@@ -18,6 +20,7 @@ public class GCodeMove extends GCode {
     Position endPosition;
 
     double distance = 0;
+    protected Optional<AnimationModel> animationModelOptional  = Optional.empty() ;;
 
     public GCodeMove(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed,Position axisPosition,Map<AxisName,Double> parameter) throws Exception {
         super(codeNumber, feedOptions, spindleSpeed, startPosition, feed);
@@ -66,5 +69,9 @@ public class GCodeMove extends GCode {
 
     public Position getAxisPosition() {
         return axisPosition;
+    }
+
+    public void setAnimationModel(Optional<AnimationModel> animationModelOptional) {
+        this.animationModelOptional = animationModelOptional;
     }
 }

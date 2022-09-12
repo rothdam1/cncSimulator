@@ -1,5 +1,6 @@
 package ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter;
 
+import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalDataModel;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
@@ -7,6 +8,7 @@ import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.GCodeMove;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -29,11 +31,17 @@ public class CNCCodeExecutes implements Callable<Boolean> {
     private final CNCProgramCommand cncProgramCommand;
     private final CanalDataModel canalDataModel;
 
+    private Optional<AnimationModel> animationModelOptional = Optional.empty() ;
     AtomicBoolean brakeRunningCode;
     public CNCCodeExecutes(CNCProgramCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode) {
         this.cncProgramCommand = cncProgramCommand;
         this.canalDataModel = canalDataModel;
         this.brakeRunningCode = brakeRunningCode;
+    }
+
+    public CNCCodeExecutes(CNCProgramCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode, Optional<AnimationModel> animationModelOptional) {
+        this(cncProgramCommand,canalDataModel,brakeRunningCode);
+        this.animationModelOptional = animationModelOptional;
     }
 
     @Override
@@ -44,6 +52,9 @@ public class CNCCodeExecutes implements Callable<Boolean> {
             for (GCode gCode : cncProgramCommand.getGCodes()) {
                 if (GCodeMove.class.isAssignableFrom(gCode.getClass())) {
                     bindAxis(((GCodeMove) gCode).getAxisPosition());
+                    if (animationModelOptional.isPresent()) {
+                        ((GCodeMove) gCode).setAnimationModel(animationModelOptional);
+                    }
                 }
                 gCode.execute(canalDataModel.getCanalRunState(),brakeRunningCode);
             }

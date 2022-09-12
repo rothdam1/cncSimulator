@@ -1,10 +1,13 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes;
 
+import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
+
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,4 +62,6 @@ public abstract class GCode {
     protected void calculatePosition(int timesRuns, int positionCalculationResolution) throws Exception {
         finished.set(true);
     }
+
+
 }

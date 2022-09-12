@@ -1,5 +1,7 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
+import ch.dcreations.cncsimulator.animation.Axis;
+import ch.dcreations.cncsimulator.animation.StraightLine;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
@@ -7,6 +9,8 @@ import ch.dcreations.cncsimulator.config.Calculator;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
+import javafx.scene.paint.Color;
+
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -30,10 +34,24 @@ public class G01 extends GCodeMove {
            if (countOfCalculations < timesRuns) {
                finished.set(true);
            }else {
+               double lineStartX = axisPosition.getX();
+               double lineStartY = axisPosition.getY();
+               double lineStartZ = axisPosition.getZ();
+               if (animationModelOptional.isPresent()){
+                  lineStartX = axisPosition.getX();
+                  lineStartY = axisPosition.getY();
+                  lineStartZ = axisPosition.getZ();
+               }
                axisPosition.setX(startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns));
                axisPosition.setY(startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns));
                axisPosition.setZ(startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns));
+               if (animationModelOptional.isPresent()){
+
+                   animationModelOptional.get().createNewLine(new Axis(Color.BROWN, lineStartX, lineStartY, lineStartZ, axisPosition.getX(), axisPosition.getY(), axisPosition.getZ()));
+
+               }
            }
        }
+
     }
 }

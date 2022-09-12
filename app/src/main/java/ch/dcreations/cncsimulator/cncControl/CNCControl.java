@@ -1,11 +1,13 @@
 package ch.dcreations.cncsimulator.cncControl;
 
+import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalState;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.value.ObservableIntegerValue;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,11 @@ public class CNCControl {
     private final List<Future<Boolean>> CNCCanalExecuteFuture = new ArrayList<>();
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final List<Canal> canals;
+
+    public CNCControl(List<Canal> canals, AnimationModel animationModel) {
+        this(canals);
+        canals.forEach((x) ->  x.addAnimationModel(animationModel));
+    }
 
     public CNCControl(List<Canal> canals) {
         this.canals = canals;
@@ -172,10 +179,14 @@ public class CNCControl {
     }
 
     public void runStoppedCNCControl() {
-        canals.stream().forEach((x) -> x.runBrakedCode());
+        canals.forEach(Canal::runBrakedCode);
     }
 
     public void stopCNCControl() {
-        canals.stream().forEach((x) -> x.brakerunningCode());
+        canals.forEach(Canal::brakerunningCode);
+    }
+
+    public void setAnimationView(AnimationModel cncAnimationView) {
+        canals.forEach((x) ->  x.addAnimationModel(cncAnimationView));
     }
 }
