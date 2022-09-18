@@ -108,8 +108,8 @@ public class G02_03 extends GCodeMove {
                     }
                 case G18 -> {
                     double legA =  Math.sqrt(x*x+z*z)/2;
-                    double hLeg = (legC-Math.sqrt(legC*legC-legA*legA));
-                    double legB =  (codeNumber == 2)?  legC-hLeg : legC+hLeg;
+                    double hLeg = (Math.sqrt(legC*legC-legA*legA));
+                    double legB =  (codeNumber == 2)?  hLeg : hLeg;
                     double multiplication = legB/(Math.sqrt((x/2)*(x/2)+((z/2)*(z/2))));
                     additionalParameterMap.put('I',(x/2)+multiplication*(-z/2));
                     additionalParameterMap.put('K',(z/2)+multiplication*(x/2));
@@ -177,7 +177,7 @@ public class G02_03 extends GCodeMove {
                         double i2 = Math.cos(radiansToMove)*additionalParameterMap.get('I')-Math.sin(radiansToMove)*additionalParameterMap.get('J');
                         double j2 = Math.sin(radiansToMove)*additionalParameterMap.get('I')+Math.cos(radiansToMove)*additionalParameterMap.get('J');
                         double xMove = additionalParameterMap.get('I')-i2;
-                        double jMove = additionalParameterMap.get('K')-j2;
+                        double jMove = additionalParameterMap.get('J')-j2;
                         currentPosX = startPosition.getX()+xMove;
                         currentPosY = startPosition.getY()+jMove;
                         currentPosZ = startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns);
@@ -198,7 +198,7 @@ public class G02_03 extends GCodeMove {
                         double radiansToMove = Math.toRadians(degreeToMove);
                         double j2 = Math.cos(radiansToMove)*additionalParameterMap.get('J')-Math.sin(radiansToMove)*additionalParameterMap.get('K');
                         double k2 = Math.sin(radiansToMove)*additionalParameterMap.get('J')+Math.cos(radiansToMove)*additionalParameterMap.get('K');
-                        double jMove = additionalParameterMap.get('I')-j2;
+                        double jMove = additionalParameterMap.get('J')-j2;
                         double zMove = additionalParameterMap.get('K')-k2;
                         currentPosY = startPosition.getY()+jMove;
                         currentPosZ = startPosition.getZ()+zMove;

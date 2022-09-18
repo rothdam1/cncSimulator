@@ -70,16 +70,19 @@ public class AnimationModel {
 
     public void rotateXAxis(double degree){
         rotationX += degree;
+        rotationX = (rotationX > 360) ? rotationX-360 : rotationX;
         update();
     }
 
     public void rotateYAxis(double degree){
         rotationY += degree;
+        rotationY = (rotationY > 360) ? rotationY-360 : rotationY;
         update();
     }
 
     public void rotateZAxis(double degree){
         rotationZ += degree;
+        rotationZ = (rotationZ > 360) ? rotationZ-360 : rotationZ;
         update();
     }
 
