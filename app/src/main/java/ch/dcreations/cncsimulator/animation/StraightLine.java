@@ -1,94 +1,94 @@
 package ch.dcreations.cncsimulator.animation;
 
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 
 
 
 public class StraightLine {
-    private  Axis baseAxis;
+    private Vector baseVector;
     private  Line drawingLine;
-    private  Axis viewAxis;
+    private Vector viewVector;
     private  Offset offset;
 
-    public StraightLine(Axis baseAxis, Line drawingLine,  Offset offset) {
+    public StraightLine(Vector baseVector, Line drawingLine, Offset offset) {
             this.offset = offset;
-            this.baseAxis = baseAxis;
+            this.baseVector = baseVector;
             this.drawingLine = drawingLine;
-            this.viewAxis =  new Axis(baseAxis.getColor(),baseAxis.getStartX(), baseAxis.getStartY(), baseAxis.getStartZ(), baseAxis.getEndX(), baseAxis.getEndY(), baseAxis.getEndZ());
+            this.viewVector =  new Vector(baseVector.getColor(), baseVector.getStartX(), baseVector.getStartY(), baseVector.getStartZ(), baseVector.getEndX(), baseVector.getEndY(), baseVector.getEndZ());
             updateAxis();
       }
 
     public Line getDrawingLine() {
+        updateAxis();
         return drawingLine;
     }
 
     public void updateAxis(){
-        drawingLine.setStartX(viewAxis.getStartX()+offset.getxOffset());
-        drawingLine.setStartY(viewAxis.getStartY()+offset.getyOffset());
-        drawingLine.setEndX(viewAxis.getEndX()+offset.getxOffset());
-        drawingLine.setEndY(viewAxis.getEndY()+offset.getyOffset());
-        drawingLine.setStroke(viewAxis.getColor());
+        drawingLine.setStartX(viewVector.getStartX()+offset.getxOffset());
+        drawingLine.setStartY(viewVector.getStartY()+offset.getyOffset());
+        drawingLine.setEndX(viewVector.getEndX()+offset.getxOffset());
+        drawingLine.setEndY(viewVector.getEndY()+offset.getyOffset());
+        drawingLine.setStroke(viewVector.getColor());
         drawingLine.setStrokeWidth(2);
     }
 
     public void setBaseAxis(double startX,double startY,double startZ,double endX,double endY,double endZ){
-        baseAxis.setStartX(startX);
-        baseAxis.setStartY(startY);
-        baseAxis.setStartZ(startZ);
-        baseAxis.setEndX(endX);
-        baseAxis.setEndY(endY);
-        baseAxis.setEndZ(endZ);
+        baseVector.setStartX(startX);
+        baseVector.setStartY(startY);
+        baseVector.setStartZ(startZ);
+        baseVector.setEndX(endX);
+        baseVector.setEndY(endY);
+        baseVector.setEndZ(endZ);
     }
 
-    public Axis getViewAxis() {
-        return viewAxis;
+    public Vector getViewAxis() {
+        return viewVector;
     }
 
-    public Axis getBaseAxis() {
-        return baseAxis;
+    public Vector getBaseAxis() {
+        return baseVector;
     }
 
-    public void setViewAxis(Axis drawBody) {
-        viewAxis.setStartX(drawBody.getStartX());
-        viewAxis.setStartY(drawBody.getStartY());
-        viewAxis.setStartZ(drawBody.getStartZ());
-        viewAxis.setEndX(drawBody.getEndX());
-        viewAxis.setEndY(drawBody.getEndY());
-        viewAxis.setEndZ(drawBody.getEndZ());
+    public void setViewAxis(Vector drawBody) {
+        viewVector.setStartX(drawBody.getStartX());
+        viewVector.setStartY(drawBody.getStartY());
+        viewVector.setStartZ(drawBody.getStartZ());
+        viewVector.setEndX(drawBody.getEndX());
+        viewVector.setEndY(drawBody.getEndY());
+        viewVector.setEndZ(drawBody.getEndZ());
     }
 
     public void setViewAxis(double startX,double startY,double startZ,double endX,double endY,double endZ){
-        viewAxis.setStartX(startX);
-        viewAxis.setStartY(startY);
-        viewAxis.setStartZ(startZ);
-        viewAxis.setEndX(endX);
-        viewAxis.setEndY(endY);
-        viewAxis.setEndZ(endZ);
+        viewVector.setStartX(startX);
+        viewVector.setStartY(startY);
+        viewVector.setStartZ(startZ);
+        viewVector.setEndX(endX);
+        viewVector.setEndY(endY);
+        viewVector.setEndZ(endZ);
     }
 
-    public void setBaseAxis(Axis drawBody) {
-        baseAxis.setStartX(drawBody.getStartX());
-        baseAxis.setStartY(drawBody.getStartY());
-        baseAxis.setStartZ(drawBody.getStartZ());
-        baseAxis.setEndX(drawBody.getEndX());
-        baseAxis.setEndY(drawBody.getEndY());
-        baseAxis.setEndZ(drawBody.getEndZ());
+    public void setBaseAxis(Vector drawBody) {
+        baseVector.setStartX(drawBody.getStartX());
+        baseVector.setStartY(drawBody.getStartY());
+        baseVector.setStartZ(drawBody.getStartZ());
+        baseVector.setEndX(drawBody.getEndX());
+        baseVector.setEndY(drawBody.getEndY());
+        baseVector.setEndZ(drawBody.getEndZ());
     }
 
     public void delete() {
-        baseAxis.setStartZ(0);
-        baseAxis.setStartX(0);
-        baseAxis.setStartY(0);
-        baseAxis.setEndX(0);
-        baseAxis.setEndY(0);
-        baseAxis.setEndZ(0);
-        viewAxis.setStartZ(0);
-        viewAxis.setStartX(0);
-        viewAxis.setStartY(0);
-        viewAxis.setEndX(0);
-        viewAxis.setEndY(0);
-        viewAxis.setEndZ(0);
+        baseVector.setStartZ(0);
+        baseVector.setStartX(0);
+        baseVector.setStartY(0);
+        baseVector.setEndX(0);
+        baseVector.setEndY(0);
+        baseVector.setEndZ(0);
+        viewVector.setStartZ(0);
+        viewVector.setStartX(0);
+        viewVector.setStartY(0);
+        viewVector.setEndX(0);
+        viewVector.setEndY(0);
+        viewVector.setEndZ(0);
         drawingLine.setStrokeWidth(0);
         drawingLine.setStartX(0);
         drawingLine.setEndY(0);

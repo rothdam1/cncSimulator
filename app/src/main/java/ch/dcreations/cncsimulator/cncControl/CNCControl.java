@@ -186,7 +186,18 @@ public class CNCControl {
         canals.forEach(Canal::brakerunningCode);
     }
 
-    public void setAnimationView(AnimationModel cncAnimationView) {
-        canals.forEach((x) ->  x.addAnimationModel(cncAnimationView));
+    public void setAnimationView(List<AnimationModel> cncAnimationView) {
+        for (int i = 0;i<canals.size();i++){
+            canals.get(i).addAnimationModel(cncAnimationView.get(i));
+        }
+
+    }
+
+    public void resetAxis() {
+        for (Canal canal : canals){
+            for (AxisName axis : canal.getCncAxes().keySet()){
+                canal.getCncAxes().get(axis).resetPosition();
+            }
+        }
     }
 }

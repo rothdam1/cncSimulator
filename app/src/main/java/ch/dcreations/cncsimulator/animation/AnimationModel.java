@@ -12,6 +12,11 @@ import java.util.List;
 public class AnimationModel {
 
     private final Offset offset = new Offset() ;
+
+    private double rotationX=0;
+    private double rotationY=0;
+    private double rotationZ=0;
+    private double zoomFactor=1;
     private final ObservableList<StraightLine> coordinateLines = FXCollections.observableArrayList();
     RoomMatrix roomMatrix = new RoomMatrix();
     private List<StraightLine> bodyList = new ArrayList<>();
@@ -19,14 +24,18 @@ public class AnimationModel {
     private Pane drawingPane;
 
     public AnimationModel(Pane drawingPane) {
-        coordinateLines.add(new StraightLine(new Axis(Color.BLUE, 0, 0, 0, 50, 0, 0), new Line(), offset));
-        coordinateLines.add(new StraightLine(new Axis(Color.RED,0,0,0,0,50,0),new Line(),offset));
-        coordinateLines.add(new StraightLine(new Axis(Color.GREEN,0,0,0,0,0,50),new Line(),offset));
+        createCoordinateSystem(drawingPane);
+        update();
+    }
+
+    private void createCoordinateSystem(Pane drawingPane) {
+        coordinateLines.add(new StraightLine(new Vector(Color.BLUE, 0, 0, 0, 50, 0, 0), new Line(), offset));
+        coordinateLines.add(new StraightLine(new Vector(Color.RED,0,0,0,0,50,0),new Line(),offset));
+        coordinateLines.add(new StraightLine(new Vector(Color.GREEN,0,0,0,0,0,50),new Line(),offset));
         this.drawingPane = drawingPane;
         for (StraightLine line : coordinateLines) {
             Platform.runLater(()-> drawingPane.getChildren().add(line.getDrawingLine()));
         }
-        update();
     }
 
     public void setOffset(double x, double y ,double z){
@@ -40,52 +49,66 @@ public class AnimationModel {
     }
 
     public void update(){
-        coordinateLines.forEach(i -> {i.setViewAxis(roomMatrix.drawBody(i.getViewAxis()));i.updateAxis();});
-        bodyList.forEach(i -> {i.setViewAxis(roomMatrix.drawBody(i.getViewAxis()));i.updateAxis();});
+        Platform.runLater(() ->coordinateLines.forEach(i -> tranformAxis(i)));
+        Platform.runLater(() -> bodyList.forEach(i -> tranformAxis(i)));
     }
+    private void tranformAxis(StraightLine straightLine ){
+        Vector tranformation = straightLine.getBaseAxis();
+        roomMatrix.rotationWinkelX(rotationX);
+        tranformation = roomMatrix.drawBody(tranformation);
+        roomMatrix.rotationWinkelY(rotationY);
+        tranformation = roomMatrix.drawBody(tranformation);
+        roomMatrix.rotationWinkelX(rotationX);
+        tranformation = roomMatrix.drawBody(tranformation);
+        roomMatrix.rotationWinkelZ(rotationZ);
+        tranformation = roomMatrix.drawBody(tranformation);
+        roomMatrix.zoom(zoomFactor);
+        tranformation = roomMatrix.drawBody(tranformation);
+        straightLine.setViewAxis(tranformation);
+        straightLine.updateAxis();
+    };
 
     public void rotateXAxis(double degree){
-        roomMatrix.rotationWinkelX(degree);
+        rotationX += degree;
         update();
     }
 
     public void rotateYAxis(double degree){
-        roomMatrix.rotationWinkelY(degree);
+        rotationY += degree;
         update();
     }
 
     public void rotateZAxis(double degree){
-        roomMatrix.rotationWinkelZ(degree);
+        rotationZ += degree;
         update();
     }
 
 
 
     public void resetView() {
-        coordinateLines.forEach(i -> {i.setViewAxis(roomMatrix.drawBody(i.getBaseAxis()));i.updateAxis();});
-        bodyList.forEach(i -> {i.setViewAxis(roomMatrix.drawBody(i.getBaseAxis()));i.updateAxis();});
-        roomMatrix.MatrixStandard();
+        rotationZ = 0;
+        rotationY = 0;
+        rotationX = 0;
+        zoomFactor = 1;
+        roomMatrix.resetMatrix();
         update();
     }
 
-    public void createNewLine(Axis axis){
-        StraightLine straightLine = new StraightLine(new Axis(axis.getColor(),axis.getStartX(),axis.getStartY(),axis.getStartZ(),axis.getEndX(),axis.getEndY(),axis.getEndZ()),new Line(),offset);
+    public void createNewLine(Vector vector){
+        StraightLine straightLine = new StraightLine(new Vector(vector.getColor(), vector.getStartX(), vector.getStartY(), vector.getStartZ(), vector.getEndX(), vector.getEndY(), vector.getEndZ()),new Line(),offset);
         bodyList.add(straightLine);
-        Platform.runLater(()-> update());
         Platform.runLater(()-> drawingPane.getChildren().add(straightLine.getDrawingLine()));
-
+        Platform.runLater(()-> update());
     }
 
     public void zoomPlus() {
-        roomMatrix.zoom(1.5);
+        zoomFactor = (zoomFactor*1.5);
         update();
-        roomMatrix.zoom(1);
     }
 
     public void zoomMinus() {
-        roomMatrix.zoom(0.75);
+        zoomFactor = (zoomFactor*0.75);
         update();
-        roomMatrix.zoom(1);
     }
 
 
@@ -101,9 +124,10 @@ public class AnimationModel {
 
     public void deleteAll() {
         bodyList.stream().forEach(i -> i.delete());
-        update();
+        coordinateLines.forEach(i -> i.delete());
+        drawingPane.getChildren().clear();
         bodyList.clear();
-        System.out.println("delete");
+        createCoordinateSystem(drawingPane);
         update();
     }
 }

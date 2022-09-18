@@ -2,7 +2,7 @@ package ch.dcreations.cncsimulator.animation;
 
 import javafx.scene.paint.Color;
 
-public class Axis {
+public class Vector {
     private Color color;
     private double startX;
     private double startY;
@@ -11,7 +11,7 @@ public class Axis {
     private double endY;
     private double endZ;
 
-    public Axis(Color color, double startX, double startY, double startZ, double endX, double endY, double endZ) {
+    public Vector(Color color, double startX, double startY, double startZ, double endX, double endY, double endZ) {
         this.color = color;
         this.startX = startX;
         this.startY = startY;

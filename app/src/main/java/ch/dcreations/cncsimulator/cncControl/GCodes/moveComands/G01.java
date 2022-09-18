@@ -1,7 +1,6 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
-import ch.dcreations.cncsimulator.animation.Axis;
-import ch.dcreations.cncsimulator.animation.StraightLine;
+import ch.dcreations.cncsimulator.animation.Vector;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
@@ -17,9 +16,15 @@ import java.util.logging.Logger;
 public class G01 extends GCodeMove {
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
+    double lineStartX = 0;
+    double lineStartY = 0;
+    double lineStartZ = 0;
     public G01(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Map<AxisName,Double> parameter) throws Exception {
         super(codeNumber, feedOptions, spindleSpeed, startPosition,feed,new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()),parameter);
         distance = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
+        lineStartX = startPosition.getX();
+        lineStartY = startPosition.getY();
+        lineStartZ = startPosition.getZ();
     }
 
     @Override
@@ -34,21 +39,22 @@ public class G01 extends GCodeMove {
            if (countOfCalculations < timesRuns) {
                finished.set(true);
            }else {
-               double lineStartX = axisPosition.getX();
-               double lineStartY = axisPosition.getY();
-               double lineStartZ = axisPosition.getZ();
-               if (animationModelOptional.isPresent()){
-                  lineStartX = axisPosition.getX();
-                  lineStartY = axisPosition.getY();
-                  lineStartZ = axisPosition.getZ();
-               }
-               axisPosition.setX(startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns));
-               axisPosition.setY(startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns));
-               axisPosition.setZ(startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns));
-               if (animationModelOptional.isPresent()){
+               
+               double currentPosX;
+               double currentPosY ;
+               double currentPosZ ;
+               currentPosX =  startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns);
+               currentPosY = startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns);
+               currentPosZ = startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns);
 
-                   animationModelOptional.get().createNewLine(new Axis(Color.BROWN, lineStartX, lineStartY, lineStartZ, axisPosition.getX(), axisPosition.getY(), axisPosition.getZ()));
-
+               axisPosition.setX(currentPosX);
+               axisPosition.setY(currentPosY);
+               axisPosition.setZ(currentPosZ);
+               if (animationModelOptional.isPresent()){
+                   animationModelOptional.get().createNewLine(new Vector(Color.BLACK, lineStartX, lineStartY, lineStartZ, currentPosX, currentPosY, currentPosZ));
+                   lineStartX = currentPosX;
+                   lineStartY = currentPosY;
+                   lineStartZ = currentPosZ;
                }
            }
        }

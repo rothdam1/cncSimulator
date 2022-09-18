@@ -103,7 +103,7 @@ public class CNCCodeDecoder {
             throw new IllegalArgumentException("CODE TO SHORT=" + code);
         if (!code.substring(0, 1).matches("[A-Za-z,%]")) throw new Exception("DOES NOT HAVE A COMMAND" + code);
         if (!code.matches(Config.END_OF_PROGRAM_SIMBOLE)) {
-            if (!code.substring(1).matches("[0-9.]*")) throw new Exception("VALUE IS NOT RIGHT" + code);
+            if (!code.substring(1).matches("[-0-9.]*")) throw new Exception("VALUE IS NOT RIGHT" + code);
         }
         return code.charAt(0);
     }

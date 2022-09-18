@@ -1,6 +1,6 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
-import ch.dcreations.cncsimulator.animation.Axis;
+import ch.dcreations.cncsimulator.animation.Vector;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.Plane;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.IllegalFormatOfGCodeException;
@@ -28,11 +28,18 @@ public class G02_03 extends GCodeMove {
 
     double degree = 0;
 
+    double lineStartX = 0;
+    double lineStartY = 0;
+    double lineStartZ = 0;
+
     public G02_03(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Map<AxisName,Double> parameter, Map<Character, Double> additionalParameterMap, Plane plane) throws Exception {
         super(codeNumber, feedOptions, spindleSpeed, startPosition,feed,new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()),parameter);
         this.additionalParameterMap = additionalParameterMap;
         this.plane = plane;
         setupParameterForCircle();
+        lineStartX = startPosition.getX();
+        lineStartY = startPosition.getY();
+        lineStartZ = startPosition.getZ();
     }
 
     private void setupParameterForCircle() throws IllegalFormatOfGCodeException {
@@ -119,8 +126,14 @@ public class G02_03 extends GCodeMove {
     }
 
     private void checkCircleParameter() throws IllegalFormatOfGCodeException {
-        double distanceWay = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
-        if(additionalParameterMap.containsKey('R') && (additionalParameterMap.containsKey('I') || additionalParameterMap.containsKey('J') || additionalParameterMap.containsKey('K'))){
+        double distanceWay = 0;
+        switch (plane){
+            case G17 -> Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),0);
+            case G18 -> Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),0,endPosition.getZ()-startPosition.getZ());
+            case G19 -> Calculator.vectorDistance(0,endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
+            default -> distanceWay = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
+        }
+        if(additionalParameterMap.containsKey('R') && ((additionalParameterMap.containsKey('I') || additionalParameterMap.containsKey('J') || additionalParameterMap.containsKey('K')))){
             throw new IllegalFormatOfGCodeException("Contains R and I or K or J");
         }else if(!(additionalParameterMap.containsKey('R') || additionalParameterMap.containsKey('I') || additionalParameterMap.containsKey('J') || additionalParameterMap.containsKey('K'))){
             throw new IllegalFormatOfGCodeException("Contains no R or I or K or J");
@@ -153,14 +166,10 @@ public class G02_03 extends GCodeMove {
                 finished.set(true);
             }else {
                 double degreeToMove = degree/countOfCalculations*timesRuns;
-                double lineStartX = axisPosition.getX();
-                double lineStartY = axisPosition.getY();
-                double lineStartZ = axisPosition.getZ();
-                if (animationModelOptional.isPresent()){
-                    lineStartX = axisPosition.getX();
-                    lineStartY = axisPosition.getY();
-                    lineStartZ = axisPosition.getZ();
-                }
+                double currentPosX= 0;
+                double currentPosY = 0;
+                double currentPosZ = 0;
+
                 switch (plane){
                     case G17 -> {
                         // rotate Vector with Angle
@@ -169,9 +178,9 @@ public class G02_03 extends GCodeMove {
                         double j2 = Math.sin(radiansToMove)*additionalParameterMap.get('I')+Math.cos(radiansToMove)*additionalParameterMap.get('J');
                         double xMove = additionalParameterMap.get('I')-i2;
                         double jMove = additionalParameterMap.get('K')-j2;
-                        axisPosition.setX(startPosition.getX()+xMove);
-                        axisPosition.setY(startPosition.getY()+jMove);
-                        axisPosition.setZ(startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns));
+                        currentPosX = startPosition.getX()+xMove;
+                        currentPosY = startPosition.getY()+jMove;
+                        currentPosZ = startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns);
                     }
                     case G18 -> {
                         // rotate Vector with Angle
@@ -180,9 +189,9 @@ public class G02_03 extends GCodeMove {
                         double k2 = Math.sin(radiansToMove)*additionalParameterMap.get('I')+Math.cos(radiansToMove)*additionalParameterMap.get('K');
                         double xMove = additionalParameterMap.get('I')-i2;
                         double zMove = additionalParameterMap.get('K')-k2;
-                        axisPosition.setX(startPosition.getX()+xMove);
-                        axisPosition.setZ(startPosition.getZ()+zMove);
-                        axisPosition.setY(startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns));
+                        currentPosX = startPosition.getX()+xMove;
+                        currentPosZ = startPosition.getZ()+zMove;
+                        currentPosY = startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns);
                     }
                     case G19 -> {
                         // rotate Vector with Angle
@@ -191,15 +200,19 @@ public class G02_03 extends GCodeMove {
                         double k2 = Math.sin(radiansToMove)*additionalParameterMap.get('J')+Math.cos(radiansToMove)*additionalParameterMap.get('K');
                         double jMove = additionalParameterMap.get('I')-j2;
                         double zMove = additionalParameterMap.get('K')-k2;
-                        axisPosition.setY(startPosition.getY()+jMove);
-                        axisPosition.setZ(startPosition.getZ()+zMove);
-                        axisPosition.setX(startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns));
+                        currentPosY = startPosition.getY()+jMove;
+                        currentPosZ = startPosition.getZ()+zMove;
+                        currentPosX = startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns);
                     }
                 }
+                axisPosition.setX(currentPosX);
+                axisPosition.setY(currentPosY);
+                axisPosition.setZ(currentPosZ);
                 if (animationModelOptional.isPresent()){
-
-                    animationModelOptional.get().createNewLine(new Axis(Color.BLACK, lineStartX, lineStartY, lineStartZ, axisPosition.getX(), axisPosition.getY(), axisPosition.getZ()));
-
+                    animationModelOptional.get().createNewLine(new Vector(Color.BLACK, lineStartX, lineStartY, lineStartZ, currentPosX, currentPosY, currentPosZ));
+                    lineStartX = currentPosX;
+                    lineStartY = currentPosY;
+                    lineStartZ = currentPosZ;
                 }
             }
         }

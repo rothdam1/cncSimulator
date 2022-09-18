@@ -1,7 +1,10 @@
 package ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors;
 
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+
+import java.awt.print.PageFormat;
 
 /**
  * <p>
@@ -25,5 +28,10 @@ public class CNCAxis {
 
     public DoubleProperty axisPositionProperty() {
         return axisPosition;
+    }
+
+    public void resetPosition() {
+        Platform.runLater(() -> axisPosition.set(0));
+        ;
     }
 }

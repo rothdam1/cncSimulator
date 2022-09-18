@@ -15,8 +15,8 @@ import java.util.Map;
 
 public class Config {
 
-    public final static CNCProgram CANAL1_SAMPLE_PROGRAM = new CNCProgram("O0001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y4.8 Z9 F1000.0;\nG2 X4.0 Y4.0 R4.0");
-    public final static CNCProgram CANAL2_SAMPLE_PROGRAM = new CNCProgram("O1001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y4.8 Z9 F100.0;\nG1 X3.0 Y4.0");
+    public final static CNCProgram CANAL1_SAMPLE_PROGRAM = new CNCProgram("O0001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y10 Z9 F1000.0;\nG2 X40.0 Y5.0 R19.0;\nG2 X2.0 Y0.0 R19.0;\nG2 X40.0 Y-5.0 R19.0;\nG2 X2.0 Y-10.0 R19.0;");
+    public final static CNCProgram CANAL2_SAMPLE_PROGRAM = new CNCProgram("O1001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y4.8 Z9 F1000.0;\nG1 X15.0 Y4.0");
 
     public final static int POSITION_CALCULATION_RESOLUTION = 100;
 
