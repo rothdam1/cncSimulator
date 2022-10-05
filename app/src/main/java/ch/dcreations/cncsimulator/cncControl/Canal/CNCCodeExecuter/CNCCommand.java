@@ -18,13 +18,13 @@ import java.util.Map;
  */
 
 
-public class CNCProgramCommand {
+public class CNCCommand {
     private final List<GCode> gCodes;
     private final MCodes mCode;
     private final Map<AxisName,Double> axisDistance;
     private final Map<Character,Double> additionParameters;
 
-    public CNCProgramCommand(List<GCode> gCodes, MCodes mCode, Map<AxisName, Double> axisDistance, Map<Character,Double> additionParameters) {
+    public CNCCommand(List<GCode> gCodes, MCodes mCode, Map<AxisName, Double> axisDistance, Map<Character,Double> additionParameters) {
         this.gCodes = gCodes;
         this.mCode = mCode;
         this.axisDistance = axisDistance;

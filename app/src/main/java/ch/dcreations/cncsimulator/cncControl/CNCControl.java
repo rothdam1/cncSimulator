@@ -9,7 +9,7 @@ import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.value.ObservableIntegerValue;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * <p>
  * <p>
- *  The CNC control contains axis and Program
+ * The CNC control contains axis and Program
  * <p>
  *
  * @author Damian www.d-creations.org
@@ -28,43 +28,39 @@ import java.util.logging.Logger;
  */
 public class CNCControl {
 
-    private  CNCState cncRunState = CNCState.STOP;
-
+    private CNCState cncRunState = CNCState.STOP;
     private ExecutorService CNCCanalExecutorService;
-    private final List<Future<Boolean>> CNCCanalExecuteFuture = new ArrayList<>();
+    private final List<Future<Boolean>> CNCCanalExecuteFuture = new LinkedList<>();
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final List<Canal> canals;
 
-    public CNCControl(List<Canal> canals, AnimationModel animationModel) {
-        this(canals);
-        canals.forEach((x) ->  x.addAnimationModel(animationModel));
-    }
 
     public CNCControl(List<Canal> canals) {
         this.canals = canals;
-        CNCCanalExecutorService = canals.size()<1 ?  Executors.newFixedThreadPool(1) : Executors.newFixedThreadPool(canals.size());
+        CNCCanalExecutorService = canals.size() < 1 ? Executors.newFixedThreadPool(1) : Executors.newFixedThreadPool(canals.size());
     }
 
     public List<Map<AxisName, CNCAxis>> getCncAxes() {
-        List<Map<AxisName,CNCAxis>> listOfAllAxis = new ArrayList<>();
+        List<Map<AxisName, CNCAxis>> listOfAllAxis = new LinkedList<>();
         for (Canal canal : canals) {
             listOfAllAxis.add(canal.getCncAxes());
         }
-    return (listOfAllAxis);
+        return (listOfAllAxis);
     }
 
     public void setCanal1CNCProgramText(String programText) throws IOException {
         setCNCProgramToCanal(1, programText);
     }
+
     public void setCanal2CNCProgramText(String programText) throws IOException {
         setCNCProgramToCanal(2, programText);
     }
+
     private void setCNCProgramToCanal(int canalNumber, String programText) throws IOException {
-        if (canals.size()< canalNumber){
+        if (canals.size() < canalNumber) {
             throw new IOException("Canal does not Exist");
-        }
-        else {
-            canals.get(canalNumber-1).setProgram(programText);
+        } else {
+            canals.get(canalNumber - 1).setProgram(programText);
         }
     }
 
@@ -75,25 +71,30 @@ public class CNCControl {
     public String getCanal2CNCProgramText() throws IOException {
         return getCNCProgramTextFromCanal(2);
     }
+
     private String getCNCProgramTextFromCanal(int canalNumber) throws IOException {
-        if (canals.size()< canalNumber){
+        if (canals.size() < canalNumber) {
             throw new IOException("Canal does not Exist");
-        }
-        else {
-            return canals.get(canalNumber-1).getProgramText();
+        } else {
+            return canals.get(canalNumber - 1).getProgramText();
         }
     }
 
-    public void stopCNCProgram() throws InterruptedException {
-        for (Canal canal : canals) {
-            canal.stopRunning();
+    public void stopAndResetCNCControl() {
+        try {
+            for (Canal canal : canals) {
+                canal.stopRunning();
+            }
+            waitUntilAllCanalsFinished();
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "WHILE RESET THE CONTROL " + e.getMessage());
+        } finally {
+            this.cncRunState = CNCState.STOP;
         }
-        if (CNCCanalExecutorService.isShutdown())logger.log(Level.WARNING,"SHOT DOWN ");
-        this.cncRunState = CNCState.STOP;
     }
 
     public void runCNCProgram() throws Exception {
-        if (CNCCanalExecutorService.isShutdown()){
+        if (CNCCanalExecutorService.isShutdown()) {
             CNCCanalExecutorService = Executors.newFixedThreadPool(canals.size());
         }
         for (Canal canal : canals) {
@@ -108,7 +109,7 @@ public class CNCControl {
             for (Canal canal : canals) {
                 CNCCanalExecuteFuture.add(CNCCanalExecutorService.submit(canal));
             }
-        }else {
+        } else {
             throw new Exception("NC IS STILL RUNNING ");
         }
     }
@@ -122,29 +123,29 @@ public class CNCControl {
     }
 
 
-
     public void terminateCNCControl() throws InterruptedException {
-        for (Canal canal : canals){
+        for (Canal canal : canals) {
             try {
                 canal.stop();
-            }catch (Exception e){
-                logger.log(Level.WARNING,"CANAL DOES NOT TERMINATE RIGHT");
+            } catch (Exception e) {
+                logger.log(Level.WARNING, "CANAL DOES NOT TERMINATE RIGHT");
                 canal.stopNow();
             }
         }
         CNCCanalExecutorService.shutdown();
-        if(!CNCCanalExecutorService.awaitTermination(5,TimeUnit.SECONDS)){
+        if (!CNCCanalExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
             CNCCanalExecutorService.shutdownNow();
         }
     }
 
     /**
      * Method can be used to register if the CNC Unit finished the current line and goes to the next line
+     *
      * @param canalNr Current Number
      * @return a Observable int Value
      */
-    public ObservableIntegerValue getCanalLinePositionAsObservables(int canalNr){
-        if (canalNr>=canals.size())throw new ArrayIndexOutOfBoundsException("Canal does not exist");
+    public ObservableIntegerValue getCanalLinePositionAsObservables(int canalNr) {
+        if (canalNr >= canals.size()) throw new ArrayIndexOutOfBoundsException("Canal does not exist");
         return canals.get(canalNr).programLinePositionProperty();
     }
 
@@ -155,9 +156,9 @@ public class CNCControl {
 
     private boolean areAllCanalsFinished() {
         boolean allCallsFinished = true;
-        for (Future<Boolean> call : CNCCanalExecuteFuture){
+        for (Future<Boolean> call : CNCCanalExecuteFuture) {
             if (!call.isDone()) {
-                logger.log(Level.INFO,"CALL IS NOT FINISHED");
+                logger.log(Level.INFO, "CALL IS NOT FINISHED");
                 allCallsFinished = false;
             }
         }
@@ -166,8 +167,8 @@ public class CNCControl {
 
     public boolean isTheNCRunning() {
         boolean allCallsStillRunning = false;
-        for (Canal canal : canals){
-            if(canal.isCanalRunning())allCallsStillRunning = true;
+        for (Canal canal : canals) {
+            if (canal.isCanalRunning()) allCallsStillRunning = true;
         }
         return allCallsStillRunning;
     }
@@ -182,22 +183,26 @@ public class CNCControl {
         canals.forEach(Canal::runBrakedCode);
     }
 
-    public void stopCNCControl() {
-        canals.forEach(Canal::brakerunningCode);
+    public void breakCNCControl() {
+        canals.forEach(Canal::breakRunningCode);
     }
 
     public void setAnimationView(List<AnimationModel> cncAnimationView) {
-        for (int i = 0;i<canals.size();i++){
+        for (int i = 0; i < canals.size(); i++) {
             canals.get(i).addAnimationModel(cncAnimationView.get(i));
         }
 
     }
 
     public void resetAxis() {
-        for (Canal canal : canals){
-            for (AxisName axis : canal.getCncAxes().keySet()){
+        for (Canal canal : canals) {
+            for (AxisName axis : canal.getCncAxes().keySet()) {
                 canal.getCncAxes().get(axis).resetPosition();
             }
         }
+    }
+
+    public int countOfCanals() {
+        return canals.size();
     }
 }

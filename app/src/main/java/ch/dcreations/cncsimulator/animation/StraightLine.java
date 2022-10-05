@@ -24,25 +24,12 @@ public class StraightLine {
     }
 
     public void updateAxis(){
-        drawingLine.setStartX(viewVector.getStartX()+offset.getxOffset());
-        drawingLine.setStartY(viewVector.getStartY()+offset.getyOffset());
-        drawingLine.setEndX(viewVector.getEndX()+offset.getxOffset());
-        drawingLine.setEndY(viewVector.getEndY()+offset.getyOffset());
+        drawingLine.setStartX(viewVector.getStartX()+offset.getXOffset());
+        drawingLine.setStartY(viewVector.getStartY()+offset.getYOffset());
+        drawingLine.setEndX(viewVector.getEndX()+offset.getXOffset());
+        drawingLine.setEndY(viewVector.getEndY()+offset.getYOffset());
         drawingLine.setStroke(viewVector.getColor());
         drawingLine.setStrokeWidth(2);
-    }
-
-    public void setBaseAxis(double startX,double startY,double startZ,double endX,double endY,double endZ){
-        baseVector.setStartX(startX);
-        baseVector.setStartY(startY);
-        baseVector.setStartZ(startZ);
-        baseVector.setEndX(endX);
-        baseVector.setEndY(endY);
-        baseVector.setEndZ(endZ);
-    }
-
-    public Vector getViewAxis() {
-        return viewVector;
     }
 
     public Vector getBaseAxis() {
@@ -58,23 +45,7 @@ public class StraightLine {
         viewVector.setEndZ(drawBody.getEndZ());
     }
 
-    public void setViewAxis(double startX,double startY,double startZ,double endX,double endY,double endZ){
-        viewVector.setStartX(startX);
-        viewVector.setStartY(startY);
-        viewVector.setStartZ(startZ);
-        viewVector.setEndX(endX);
-        viewVector.setEndY(endY);
-        viewVector.setEndZ(endZ);
-    }
 
-    public void setBaseAxis(Vector drawBody) {
-        baseVector.setStartX(drawBody.getStartX());
-        baseVector.setStartY(drawBody.getStartY());
-        baseVector.setStartZ(drawBody.getStartZ());
-        baseVector.setEndX(drawBody.getEndX());
-        baseVector.setEndY(drawBody.getEndY());
-        baseVector.setEndZ(drawBody.getEndZ());
-    }
 
     public void delete() {
         baseVector.setStartZ(0);

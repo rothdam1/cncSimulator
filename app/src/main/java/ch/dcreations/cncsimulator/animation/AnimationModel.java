@@ -6,7 +6,8 @@ import javafx.collections.ObservableList;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
-import java.util.ArrayList;
+
+import java.util.LinkedList;
 import java.util.List;
 
 public class AnimationModel {
@@ -19,7 +20,7 @@ public class AnimationModel {
     private double zoomFactor=1;
     private final ObservableList<StraightLine> coordinateLines = FXCollections.observableArrayList();
     RoomMatrix roomMatrix = new RoomMatrix();
-    private List<StraightLine> bodyList = new ArrayList<>();
+    private List<StraightLine> bodyList = new LinkedList<>();
 
     private Pane drawingPane;
 
@@ -39,9 +40,8 @@ public class AnimationModel {
     }
 
     public void setOffset(double x, double y ,double z){
-        offset.setxOffset(x);
-        offset.setyOffset(y);
-        offset.setzOffset(z);
+        offset.setXOffset(x);
+        offset.setYOffset(y);
     }
 
     public List<StraightLine> getCoordinateSystemeLineList() {
@@ -116,12 +116,12 @@ public class AnimationModel {
 
 
     public void moveYAxis(double distance) {
-        offset.setyOffset(offset.getyOffset()+distance) ;
+        offset.setYOffset(offset.getYOffset()+distance) ;
         update();
     }
 
     public void moveXAxis(double distance) {
-        offset.setxOffset(offset.getxOffset()+distance) ;
+        offset.setXOffset(offset.getXOffset()+distance) ;
         update();
     }
 

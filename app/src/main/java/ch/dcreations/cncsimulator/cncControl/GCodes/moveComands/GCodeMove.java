@@ -1,6 +1,7 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
 import ch.dcreations.cncsimulator.animation.AnimationModel;
+import ch.dcreations.cncsimulator.animation.Vector;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
@@ -9,6 +10,7 @@ import ch.dcreations.cncsimulator.config.Calculator;
 import ch.dcreations.cncsimulator.config.ExeptionMessages;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
+import javafx.scene.paint.Color;
 
 import java.util.Map;
 import java.util.Optional;
@@ -16,11 +18,15 @@ import java.util.Optional;
 public class GCodeMove extends GCode {
     protected Position axisPosition ;
 
-    Map<AxisName,Double> parameter;
-    Position endPosition;
+    protected Map<AxisName,Double> parameter;
+    protected Position endPosition;
 
     double distance = 0;
-    protected Optional<AnimationModel> animationModelOptional  = Optional.empty() ;;
+    protected Optional<AnimationModel> animationModelOptional  = Optional.empty() ;
+
+    protected double lineStartX = 0;
+    protected double lineStartY = 0;
+    protected double lineStartZ = 0;
 
     public GCodeMove(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed,Position axisPosition,Map<AxisName,Double> parameter) throws Exception {
         super(codeNumber, feedOptions, spindleSpeed, startPosition, feed);
@@ -73,5 +79,17 @@ public class GCodeMove extends GCode {
 
     public void setAnimationModel(Optional<AnimationModel> animationModelOptional) {
         this.animationModelOptional = animationModelOptional;
+    }
+
+    protected void drawAnimation(double currentPosX, double currentPosY, double currentPosZ){
+        axisPosition.setX(currentPosX);
+        axisPosition.setY(currentPosY);
+        axisPosition.setZ(currentPosZ);
+        if (animationModelOptional.isPresent()){
+            animationModelOptional.get().createNewLine(new Vector(Color.BLACK, lineStartX, lineStartY, lineStartZ, currentPosX, currentPosY, currentPosZ));
+            lineStartX = currentPosX;
+            lineStartY = currentPosY;
+            lineStartZ = currentPosZ;
+        }
     }
 }

@@ -97,7 +97,7 @@ class CNCControlTest {
         assertDoesNotThrow(()-> cncControl.runCNCProgram());
         assertEquals(CNCState.RUN,cncControl.getCncRunState(),"CNCControl Test -> TEST 4_1  TEST if run set CNCState to ru ");
         //4_2 TEST if stop set CNCState to Stop and does not throw an Exception
-        assertDoesNotThrow(() -> cncControl.stopCNCProgram());
+        assertDoesNotThrow(() -> cncControl.stopAndResetCNCControl());
         assertEquals(CNCState.STOP,cncControl.getCncRunState(),"CNCControl Test -> TEST 4_2 TEST if stop set CNCState to Stop and does not throw an Exception ");
     }
 

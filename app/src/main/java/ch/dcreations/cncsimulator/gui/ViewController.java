@@ -1,5 +1,4 @@
 package ch.dcreations.cncsimulator.gui;
-import ch.dcreations.cncsimulator.animation.StraightLine;
 import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
@@ -18,7 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Handler;
@@ -79,9 +78,7 @@ public class ViewController {
     private double xPos = 0;
     private double yPos = 0;
 
-    private List<AnimationModel> animationModelList = new ArrayList<>();
-
-;
+    private final List<AnimationModel> animationModelList = new LinkedList<>();
     @FXML
     public void initialize() {
        initialize(new Config(),new CNCControl(Config.GET_CNC_CANALS()));
@@ -92,10 +89,9 @@ public class ViewController {
         this.cncControl = cncControl;
         cncControl.getCanalLinePositionAsObservables(0).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL1));
         cncControl.getCanalLinePositionAsObservables(1).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL2));
-        setCNCControl();
+        setViewCNCControl();
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL1).bind(textAreaCanal1.textProperty());
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL2).bind(textAreaCanal2.textProperty());
-        logger.log(Level.INFO,"GUI initialized");
         logger.addHandler(new Handler() {
             @Override
             public void publish(LogRecord logRecord) {
@@ -106,19 +102,12 @@ public class ViewController {
                     WarringTextView.setText(logRecord.getMessage());
                 }
             }
-
             @Override
-            public void flush() {
-
-            }
-
+            public void flush() {}
             @Override
-            public void close() throws SecurityException {
-
-            }
+            public void close() throws SecurityException {}
         });
-
-        for (int i = 1; i<= cncControl.getCncAxes().size() ; i++) {
+        for (int i = 1; i<= cncControl.countOfCanals() ; i++) {
             Tab tab = new Tab();
             tab.setText("Canal " + i);
             Pane pane = new Pane();
@@ -130,7 +119,7 @@ public class ViewController {
     }
 
     public void initializeAnimation() {
-        animationModelList.stream().forEach((x) -> {
+        animationModelList.forEach((x) -> {
             x.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
             x.update();
         });
@@ -149,49 +138,41 @@ public class ViewController {
     @FXML
     private void mouseHandler(MouseEvent event) {
                 AnimationModel animationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
+                //Transformation
                 if (event.isSecondaryButtonDown()){
-                    double diff = getMouseX(event) - xPos;
-                     animationModel.moveXAxis((diff) );
-                    xPos = getMouseX(event);
-                    diff = getMouseY(event) - yPos;
-                    animationModel.moveYAxis((diff) );
-                    yPos = getMouseY(event);
-                }else {
-                    double diff = getMouseX(event) - xPos;
-                    animationModel.rotateYAxis((diff) * 1);
-                    xPos = getMouseX(event);
-                    diff = getMouseY(event) - yPos;
-                    animationModel.rotateXAxis((diff) * -1);
-                    yPos = getMouseY(event);
+                     animationModel.moveXAxis(getMouseX(event) - xPos);
+                    animationModel.moveYAxis(getMouseY(event) - yPos );
+                }// rotation
+                else {
+                    animationModel.rotateYAxis(getMouseX(event) - xPos);
+                    animationModel.rotateXAxis((getMouseY(event) - yPos) * -1);
                 }
+                storeCurrentMousePosition(event);
     }
-
+    private void storeCurrentMousePosition(MouseEvent event){
+        xPos = getMouseX(event);//save current position
+        yPos = getMouseY(event);//save current position
+    }
     @FXML
     private void mouseClickedOnPanel(MouseEvent event) {
-        xPos = getMouseX(event);
-        yPos = getMouseY(event);
+            storeCurrentMousePosition(event);
     }
     @FXML
     private void zoomPlus() {
-        AnimationModel animationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
-
-        animationModel.zoomPlus();
+        animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex()).zoomPlus();
     }
 
 
     @FXML
     private void zoomMinus() {
-        AnimationModel animationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
-
-        animationModel.zoomMinus();
+        animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex()).zoomMinus();
     }
 
     @FXML
     private void centerView() {
-        AnimationModel animationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
-
-        animationModel.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
-        animationModel.resetView();
+        AnimationModel selectedAnimationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
+        selectedAnimationModel.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
+        selectedAnimationModel.resetView();
     }
 
     private double getMouseX(MouseEvent event) {
@@ -214,36 +195,29 @@ public class ViewController {
         }
     }
 
-    private void setCNCControl() {
-        int chanalNumber = 1;
+    private void setViewCNCControl() {
+        int canalNumber = 1;
         for (Map<AxisName,CNCAxis> cncAxis : cncControl.getCncAxes()) {
-            Label labelCanalName = new Label("Canal "+chanalNumber);
+            Label labelCanalName = new Label("Canal "+canalNumber);
             CNCVBox.getChildren().add(labelCanalName);
-            for (AxisName axisName : cncAxis.keySet()) {
+            for (AxisName axisName :  cncAxis.keySet().stream().sorted().toList()) {
                 Label label = new Label();
-                label.textProperty().bind(Bindings.concat(axisName,chanalNumber," ",cncAxis.get(axisName).axisPositionProperty().asString()));
+                label.textProperty().bind(Bindings.concat(axisName,canalNumber," ",cncAxis.get(axisName).axisPositionProperty().asString()));
                 CNCVBox.getChildren().add(label);
             }
-            chanalNumber++;
+            canalNumber++;
         }
     }
     @FXML
     public void runCNCButtonClicked(){
-
-        resetNCControllSwitch();
-        WarringTextView.setText("");
-        setCNCProgramToControl();
         try {
+            resetCNCControl();
+            setCNCProgramToControl();
             cncControl.runCNCProgram();
         }catch (Exception e){
             logger.log(Level.WARNING,e.getMessage());
         }finally {
-            runCNCButton.setSelected(true);
-            canal1AnchorPane.getChildren().clear();
-            canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
-            canal2AnchorPane.getChildren().clear();
-            canal2AnchorPane.getChildren().add(Canal12CNCProgramTextFlow);
-            runCNCButton.setSelected(false);
+            switchEditorMode(EditorMode.RUN);
         }
     }
 
@@ -257,7 +231,7 @@ public class ViewController {
     }
 
     @FXML
-    public void stopCNCButtonClicked(){
+    public void breakRunningCNCButtonClicked(){
         switchNCCControl();
     }
 
@@ -268,7 +242,7 @@ public class ViewController {
             WarringTextView.setText("");
             brakeState = true;
             stopCNCButton.setText("restart");
-            cncControl.stopCNCControl();
+            cncControl.breakCNCControl();
         } else {
             stopCNCButton.setText("stop");
             brakeState = false;
@@ -279,40 +253,40 @@ public class ViewController {
     }
     }
 
-    private void resetNCControllSwitch(){
+    private void resetNCBreakSwitch(){
         stopCNCButton.setText("stop");
         brakeState = false;
         WarringTextView.setText("");
         cncControl.runStoppedCNCControl();
-        AnimationModel animationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
-        animationModel.deleteAll();
-        animationModel.resetView();
-        cncControl.resetAxis();
     }
 
+    private void resetCNCControl(){
+        try {
+            resetNCBreakSwitch();
+            cncControl.stopAndResetCNCControl();
+            deleteDrawnAnimations();
+            cncControl.resetAxis();
+        }catch (Exception e){
+            logger.log(Level.WARNING,e.getMessage());
+        }
+    }
+
+    private void deleteDrawnAnimations(){
+        animationModelList.forEach(x -> {x.deleteAll();x.resetView();});
+    }
 
 
     @FXML
     public void resetCNCButtonClicked(){
+        resetCNCControl();
         WarringTextView.setText("");
         runCNCButton.setSelected(false);
-        try {
-            cncControl.stopCNCProgram();
-        }catch (Exception e){
-            logger.log(Level.WARNING,"STOP CNC failed");
-        }finally {
-            canal1AnchorPane.getChildren().clear();
-            canal1AnchorPane.getChildren().add(textAreaCanal1);
-            canal2AnchorPane.getChildren().clear();
-            canal2AnchorPane.getChildren().add(textAreaCanal2);
-            resetNCControllSwitch();
-        }
+        switchEditorMode(EditorMode.EDIT);
     }
 
 
     @FXML
     public void goToNextStepCNCButtonClicked(){
-
         brakeState = false;
         try {
             setCNCProgramToControl();
@@ -320,10 +294,24 @@ public class ViewController {
         }catch (Exception e){
             logger.log(Level.WARNING,e.getMessage());
         }finally {
-            canal1AnchorPane.getChildren().clear();
-            canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
-            canal2AnchorPane.getChildren().clear();
-            canal2AnchorPane.getChildren().add(Canal12CNCProgramTextFlow);
+            switchEditorMode(EditorMode.RUN);
+        }
+    }
+
+    private void switchEditorMode(EditorMode editorMode){
+        switch (editorMode) {
+            case RUN -> {
+                canal1AnchorPane.getChildren().clear();
+                canal1AnchorPane.getChildren().add(Canal1CNCProgramTextFlow);
+                canal2AnchorPane.getChildren().clear();
+                canal2AnchorPane.getChildren().add(Canal12CNCProgramTextFlow);
+            }
+            case EDIT -> {
+                canal1AnchorPane.getChildren().clear();
+                canal1AnchorPane.getChildren().add(textAreaCanal1);
+                canal2AnchorPane.getChildren().clear();
+                canal2AnchorPane.getChildren().add(textAreaCanal2);
+            }
         }
     }
 
@@ -351,5 +339,10 @@ public class ViewController {
                 }
             }
         });
+    }
+
+    enum EditorMode{
+        EDIT,
+        RUN
     }
 }

@@ -21,8 +21,4 @@ public class CNCProgram {
         return programText;
     }
 
-    @Override
-    public String toString() {
-        return super.toString();
-    }
 }

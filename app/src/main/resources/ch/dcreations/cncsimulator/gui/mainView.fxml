@@ -115,7 +115,7 @@
                                           <ToolBar prefHeight="40.0" prefWidth="200.0">
                                              <items>
                                                 <ToggleButton fx:id="runCNCButton" mnemonicParsing="false" onAction="#runCNCButtonClicked" text="run" />
-                                                <Button fx:id="stopCNCButton" mnemonicParsing="false" onAction="#stopCNCButtonClicked" text="stop" />
+                                                <Button fx:id="stopCNCButton" mnemonicParsing="false" onAction="#breakRunningCNCButtonClicked" text="stop" />
                                                 <Button mnemonicParsing="false" onAction="#resetCNCButtonClicked" text="reset" />
                                                 <Button mnemonicParsing="false" onAction="#goToNextStepCNCButtonClicked" text="nextS" />
                                              </items>

@@ -1,6 +1,7 @@
 package ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter;
 
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.Plane;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalDataModel;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistException;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.CodeDoesNotExistException;
@@ -14,10 +15,8 @@ import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.DoubleProperty;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.logging.Logger;
 import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption.CONSTANT_ROTATION;
 import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption.CONSTANT_SURFACE_SPEED;
@@ -33,18 +32,18 @@ import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption
  * @since 2022-08-18
  */
 
-public class CNCCodeDecoder {
+public class CNCCommandGenerator {
 
     CanalDataModel canalDataModel;
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
-    public CNCCodeDecoder(CanalDataModel canalDataModel) {
+    public CNCCommandGenerator(CanalDataModel canalDataModel) {
         this.canalDataModel = canalDataModel;
     }
 
-    public CNCProgramCommand splitCommands(String line) throws Exception {
+    public CNCCommand splitCommands(String line) throws Exception {
         String[] codeWords = line.replace(" ", "").split("(?=[A-Z,%])");
-        List<GCode> gCodes = new ArrayList<>();
+        List<GCode> gCodes = new LinkedList<>();
         Map<AxisName, Double> axisDistance = new HashMap<>();
         try {
             return generateCNCCode(codeWords, gCodes, axisDistance);
@@ -53,7 +52,7 @@ public class CNCCodeDecoder {
         }
     }
 
-    private CNCProgramCommand generateCNCCode(String[] codeWords, List<GCode> gCodes, Map<AxisName, Double> axisDistance) throws Exception {
+    private CNCCommand generateCNCCode(String[] codeWords, List<GCode> gCodes, Map<AxisName, Double> axisDistance) throws Exception {
         MCodes mCode = null;
         Map<Character, Double> additionalParameterMap = new HashMap<>();
         for (String code : codeWords) {
@@ -77,7 +76,7 @@ public class CNCCodeDecoder {
                 }
             }
         }
-        return new CNCProgramCommand(gCodes, mCode, axisDistance, additionalParameterMap);
+        return new CNCCommand(gCodes, mCode, axisDistance, additionalParameterMap);
     }
 
     //Decodes the G value to the Correct G Code G01 -> G999
@@ -92,6 +91,9 @@ public class CNCCodeDecoder {
             case 96 -> canalDataModel.getCurrentSelectedSpindle().setSpindleRotationOption(CONSTANT_SURFACE_SPEED, getCNCAxisProperty(AxisName.X));
             case 98 ->  canalDataModel.setFeedOptions(FeedOptions.FEED_PER_MINUITE);
             case 99 -> canalDataModel.setFeedOptions(FeedOptions.FEED_PER_REVOLUTION);
+            case 17 -> canalDataModel.setPlane(Plane.G17);
+            case 18 -> canalDataModel.setPlane(Plane.G18);
+            case 19 -> canalDataModel.setPlane(Plane.G19);
             default -> throw new Exception("Code does not exist");
         }
         return gCode;

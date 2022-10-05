@@ -1,19 +1,20 @@
 package ch.dcreations.cncsimulator.cncControl.Canal;
 
 import ch.dcreations.cncsimulator.animation.AnimationModel;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeDecoder;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCodeExecutes;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCProgramCommand;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommandGenerator;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommandExecutor;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommand;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.*;
-import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 /**
  * <p>
  * <p>
@@ -29,19 +30,18 @@ public class Canal implements Callable<Boolean> {
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    private final List<Future<Boolean>> futures = new ArrayList<>();
+    private final List<Future<Boolean>> futures = new LinkedList<>();
     private CanalDataModel canalDataModel;
     private int countOfProgramLines = 0;
     private String cncProgramText = "";
     private final AtomicBoolean brakeRunningCode = new AtomicBoolean(false);
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
-    boolean RunLineIsCompleted = false;
+    private Optional<AnimationModel> animationModelOptional = Optional.empty();
 
-    private Optional<AnimationModel> animationModelOptional = Optional.empty() ; ;
     public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles) {
         super();
         try {
-            canalDataModel = new CanalDataModel(cncAxes,cncSpindles,Plane.G18);
+            canalDataModel = new CanalDataModel(cncAxes, cncSpindles, Plane.G18);
             canalDataModel.setCurrentSelectedSpindle(SpindelNames.S1);
         } catch (Exception e) {
             logger.log(Level.WARNING, e.getMessage());
@@ -83,24 +83,28 @@ public class Canal implements Callable<Boolean> {
     private void runAllLines(String[] lines) throws Exception {
         programLinePosition.set(0);
         if (areAllCallsFinished()) {
-            RunLineIsCompleted = true;
             while (programLinePosition.get() <= countOfProgramLines - 2) {
-                    RunLineIsCompleted = false;
-                    for(Future<Boolean> future : futures){
-                        future.get();
-                    }
-                    runNextLine(lines[programLinePosition.get()]);
+                waitUntilCallsAreFinished();
+                runNextLine(lines[programLinePosition.get()]);
             }
         }
     }
 
-     private void runNextLine(String line) throws Exception {
-        CNCCodeDecoder cncCodeDecoder = new CNCCodeDecoder(canalDataModel);
-        CNCProgramCommand cncProgramCommand = cncCodeDecoder.splitCommands(line);
-            if(areAllCallsFinished() ){
-                goToNextLine();
-                executeNCCommand(cncProgramCommand);
+    private void runNextLine(String line) throws Exception {
+        CNCCommandGenerator cncCommandDecoder = new CNCCommandGenerator(canalDataModel);
+        CNCCommand cncProgramCommand = cncCommandDecoder.splitCommands(line);
+        goToNextLine();
+        executeNCCommand(cncProgramCommand);
+    }
+
+    private void waitUntilCallsAreFinished() {
+        futures.forEach((x) -> {
+            try {
+                x.get(5, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                x.cancel(false);
             }
+        });
     }
 
     private boolean areAllCallsFinished() {
@@ -114,16 +118,13 @@ public class Canal implements Callable<Boolean> {
         return allCallsFinished;
     }
 
-    synchronized private void executeNCCommand(CNCProgramCommand cncProgramCommand) {
-        Callable callable = new CNCCodeExecutes(cncProgramCommand,canalDataModel,brakeRunningCode,animationModelOptional);
+    private void executeNCCommand(CNCCommand cncProgramCommand) {
+        Callable<Boolean> callable = new CNCCommandExecutor(cncProgramCommand, canalDataModel, brakeRunningCode, animationModelOptional);
         futures.add(executorService.submit(callable));
-
     }
 
     private void unbindAxis() {
-        for (AxisName axisName : canalDataModel.getCncAxes().keySet()) {
-            canalDataModel.getCncAxes().get(axisName).axisPositionProperty().unbind();
-        }
+        canalDataModel.getCncAxes().values().forEach(x -> x.axisPositionProperty().unbind());
     }
 
     private void goToNextLine() {
@@ -139,19 +140,13 @@ public class Canal implements Callable<Boolean> {
     }
 
     public void stopRunning() throws InterruptedException {
-        programLinePosition.set(0);
         canalDataModel.setCanalRunState(false);
-        futures.forEach((x) -> {
-            try {
-                x.get(Config.POSITION_CALCULATION_RESOLUTION,TimeUnit.MILLISECONDS);
-            } catch (Exception e) {
-                x.cancel(false);
-            }
-        });
+        waitUntilCallsAreFinished();
         if (!areAllCallsFinished()) {
             stop();
         }
         unbindAxis();
+        programLinePosition.set(0);
     }
 
     public void stopNow() {
@@ -160,17 +155,19 @@ public class Canal implements Callable<Boolean> {
     }
 
     public void stop() throws InterruptedException {
-        futures.forEach((future)-> future.cancel(false));
+        futures.forEach((future) -> future.cancel(false));
         executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.SECONDS);
+        if (executorService.awaitTermination(1, TimeUnit.SECONDS)) {
+            executorService.shutdownNow();
+        }
     }
 
     public ObservableIntegerValue programLinePositionProperty() {
-    return programLinePosition;
+        return programLinePosition;
     }
 
 
-    public void brakerunningCode() {
+    public void breakRunningCode() {
         brakeRunningCode.set(true);
     }
 
@@ -183,14 +180,13 @@ public class Canal implements Callable<Boolean> {
     }
 
     public boolean getCanalRunState() {
-       return canalDataModel.getCanalRunState().get();
+        return canalDataModel.getCanalRunState().get();
     }
 
     public boolean isCanalRunning() {
         boolean allCallsFinished = false;
         for (Future<Boolean> call : futures) {
             if (!call.isDone()) {
-              //  logger.log(Level.INFO, "CALL IS NOT FINISHED");
                 allCallsFinished = true;
             }
         }
@@ -198,6 +194,6 @@ public class Canal implements Callable<Boolean> {
     }
 
     public void addAnimationModel(AnimationModel animationModel) {
-        animationModelOptional =  Optional.of(animationModel);
+        animationModelOptional = Optional.of(animationModel);
     }
 }

@@ -1,11 +1,9 @@
 package ch.dcreations.cncsimulator.animation;
 
 public class RoomMatrix {
+    private final double[][] addMatrix = new double[3][3];
 
-
-    private double addMatrix[][] = new double[3][3];
-
-    private double standardMatrix[][] = new double[3][3];
+    private final double[][] standardMatrix = new double[3][3];
 
 
 
@@ -74,15 +72,14 @@ public class RoomMatrix {
     }
 
 
-    private Vector getAxis(Vector vector, double matrix[][]) {
+    private Vector getAxis(Vector vector, double[][] matrix) {
         double transformStartX = vector.getStartX() * matrix[0][0] + vector.getStartY() * matrix[0][1] + vector.getStartZ() * matrix[0][2];
         double transformStartY = vector.getStartX() * matrix[1][0] + vector.getStartY() * matrix[1][1] + vector.getStartZ() * matrix[1][2];
         double transformStartZ = vector.getStartX() * matrix[2][0] + vector.getStartY() * matrix[2][1] + vector.getStartZ() * matrix[2][2];
         double transformEndX = vector.getEndX() * matrix[0][0] + vector.getEndY() * matrix[0][1] + vector.getEndZ() * matrix[0][2];
         double transformEndY = vector.getEndX() * matrix[1][0] + vector.getEndY() * matrix[1][1] + vector.getEndZ() * matrix[1][2];
         double transformEndZ = vector.getEndX() * matrix[2][0] + vector.getEndY() * matrix[2][1] + vector.getEndZ() * matrix[2][2];
-        Vector ret = new Vector(vector.getColor(), transformStartX, transformStartY, transformStartZ, transformEndX, transformEndY, transformEndZ);
-        return ret;
+        return new Vector(vector.getColor(), transformStartX, transformStartY, transformStartZ, transformEndX, transformEndY, transformEndZ);
     }
 
     @Override
@@ -115,12 +112,12 @@ public class RoomMatrix {
     }
 
     private double[][] matrixMultiplication(double[][] a,double[][] b){
-        int lenght = a.length;
-        double result[][] = new double[lenght][lenght];
-        for (int i= 0;i<lenght;i++){
-            for (int j= 0;j<lenght;j++){
+        int length = a.length;
+        double[][] result = new double[length][length];
+        for (int i= 0;i<length;i++){
+            for (int j= 0;j<length;j++){
                 double value = 0;
-                for (int k= 0;k<lenght;k++){
+                for (int k= 0;k<length;k++){
                     value = value +( a[k][j] * b[i][k]);
                 }
                 result[i][j] =value;
@@ -129,14 +126,4 @@ public class RoomMatrix {
         return result;
     }
 
-    void printMatrix(double[][] a){
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < a.length; i++) {
-            for (int j = 0; j < a.length; j++) {
-                sb.append(" ").append(a[j][i]).append(" ");
-            }
-            sb.append('\n');
-        }
-        System.out.println(sb);
-    }
 }

@@ -1,6 +1,5 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
-import ch.dcreations.cncsimulator.animation.Vector;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.Plane;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.IllegalFormatOfGCodeException;
@@ -10,8 +9,6 @@ import ch.dcreations.cncsimulator.config.Calculator;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
-import javafx.scene.paint.Color;
-
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -22,15 +19,13 @@ public class G02_03 extends GCodeMove {
     Map<Character, Double> additionalParameterMap;
 
     double distance = 0;
+    double direction ;
     Plane plane;
 
     double radius = 0;
 
     double degree = 0;
 
-    double lineStartX = 0;
-    double lineStartY = 0;
-    double lineStartZ = 0;
 
     public G02_03(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Map<AxisName,Double> parameter, Map<Character, Double> additionalParameterMap, Plane plane) throws Exception {
         super(codeNumber, feedOptions, spindleSpeed, startPosition,feed,new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()),parameter);
@@ -40,97 +35,111 @@ public class G02_03 extends GCodeMove {
         lineStartX = startPosition.getX();
         lineStartY = startPosition.getY();
         lineStartZ = startPosition.getZ();
+        direction =  (codeNumber == 2) ? 1 : -1;
     }
 
     private void setupParameterForCircle() throws IllegalFormatOfGCodeException {
         checkCircleParameter();
         calculateParameter();
-        degree = caculateDegree();
+        degree = calculateDegree();
         distance =( (radius*2*Math.PI)*degree/360);
     }
 
-    private double caculateDegree() {
+    private double calculateDegree() {
         double x1=0, y1=0, x2=0, y2=0,xC=0,yC=0;
         switch (plane){
             case G17 -> {
-                x1 = startPosition.getX();
-                y1 = startPosition.getY();
-                x2 = endPosition.getX();
-                y2 = endPosition.getY();
+                x2 = endPosition.getX()-startPosition.getX();
+                y2 = endPosition.getY()-startPosition.getY();
                 xC = additionalParameterMap.get('I');
                 yC = additionalParameterMap.get('J');
             }
             case G18 -> {
-                x1 = 0;
-                y1 = 0;
                 x2 = endPosition.getX()-startPosition.getX();
                 y2 = endPosition.getZ()-startPosition.getZ();
                 xC = additionalParameterMap.get('I');
                 yC = additionalParameterMap.get('K');
             }
             case G19 -> {
-                y1 = startPosition.getY();
-                y1 = startPosition.getZ();
-                x2 = endPosition.getY();
-                y2 = endPosition.getZ();
+                x2 = endPosition.getY()-startPosition.getY();
+                y2 = endPosition.getZ()- startPosition.getZ();
                 xC = additionalParameterMap.get('J');
                 yC = additionalParameterMap.get('K');
             }
         }
         // calculating angle between two points.
+        int xSign = (x2 > x2*-1) ? 1 : -1;
+        int ySign = (y2 > y2*-1) ? 1 : 1;
+        int xCSign = (xC > xC*-1) ? 1 : 1;
+        int yCSign = (yC > yC*-1) ? 1 : -1;
+        int directionSign = (directionAngle()) ? 1 : -1;
         double top = (x1-xC)*(x2-xC)+(y1-yC)*(y2-yC);
         double down1 = Math.sqrt((x1-xC)*(x1-xC)+(y1-yC)*(y1-yC));
         double down2 = Math.sqrt((x2-xC)*(x2-xC)+(y2-yC)*(y2-yC));
         double angle = Math.toDegrees(Math.acos(top/(down1*down2)));
         radius = Math.sqrt(xC*xC+yC*yC);
-        angle = (directionAngle() == true) ? angle : 360-angle;
+        angle = (xCSign*yCSign*ySign*xSign*directionSign > 0) ? angle : angle;
         return angle;
     }
 
     private boolean directionAngle() {
-        return (codeNumber == 2) ? true : false;
+        return codeNumber == 2;
     }
 
     private void calculateParameter() {
         if (additionalParameterMap.containsKey('R')) {
-            int direction = (codeNumber == 2) ? 1 : -1;
             double x = endPosition.getX()-startPosition.getX();
             double y = endPosition.getY()-startPosition.getY();
             double z = endPosition.getZ()-startPosition.getZ();
             double legC = additionalParameterMap.get('R');
+            int direction2 = (directionAngle()) ?  1 : -1;
             switch (plane){
                 case G17 -> {
                     double legA =  Math.sqrt(x*x+y*y)/2;
                     double legB = Math.sqrt(legC*legC-legA*legA);
-                    double multiplicatior =legC/ (legC - legB);
-                    additionalParameterMap.put('I',direction*multiplicatior*(x/2));
-                    additionalParameterMap.put('J',direction*multiplicatior*(x/2));
+                    double multiplication = legB/(Math.sqrt(x*x+y*y));
+                    additionalParameterMap.put('I',(x/2)+multiplication*(-1* direction2 *y));
+                    additionalParameterMap.put('J',(y/2)+multiplication*(direction2* x));
                     }
                 case G18 -> {
                     double legA =  Math.sqrt(x*x+z*z)/2;
-                    double hLeg = (Math.sqrt(legC*legC-legA*legA));
-                    double legB =  (codeNumber == 2)?  hLeg : hLeg;
+                    double legB = (Math.sqrt(legC*legC-legA*legA));
                     double multiplication = legB/(Math.sqrt((x/2)*(x/2)+((z/2)*(z/2))));
-                    additionalParameterMap.put('I',(x/2)+multiplication*(-z/2));
+                    additionalParameterMap.put('I',(-x/2)+multiplication*(-z/2));
                     additionalParameterMap.put('K',(z/2)+multiplication*(x/2));
                 }
                 case G19 -> {
                     double legA =  Math.sqrt(z*z+y*y)/2;
                     double legB = Math.sqrt(legC*legC-legA*legA);
-                    double multiplicatior =legC/ (legC - legB);
-                    additionalParameterMap.put('I',multiplicatior*(x/2));
-                    additionalParameterMap.put('J',multiplicatior*(x/2));
+                    double multiplication = legB/(Math.sqrt((y/2)*(y/2)+((z/2)*(z/2))));
+                    additionalParameterMap.put('J',(y/2)+multiplication*(-z/2));
+                    additionalParameterMap.put('K',(z/2)+multiplication*(y/2));
+                }
+            }
+        }else {
+            switch (plane){
+                case G17 -> {
+                    if(!additionalParameterMap.containsKey('J'))additionalParameterMap.put('J',0.0);
+                    if(!additionalParameterMap.containsKey('I'))additionalParameterMap.put('I',0.0);
+                }
+                case G18 -> {
+                    if(!additionalParameterMap.containsKey('I'))additionalParameterMap.put('I',0.0);
+                    if(!additionalParameterMap.containsKey('K'))additionalParameterMap.put('K',0.0);
+                }
+                case G19 -> {
+                    if(!additionalParameterMap.containsKey('J'))additionalParameterMap.put('J',0.0);
+                    if(!additionalParameterMap.containsKey('K'))additionalParameterMap.put('K',0.0);
                 }
             }
         }
     }
 
     private void checkCircleParameter() throws IllegalFormatOfGCodeException {
-        double distanceWay = 0;
+        double distanceWay ;
         switch (plane){
-            case G17 -> Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),0);
-            case G18 -> Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),0,endPosition.getZ()-startPosition.getZ());
-            case G19 -> Calculator.vectorDistance(0,endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
+            case G17 -> distanceWay = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),0);
+            case G18 -> distanceWay = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),0,endPosition.getZ()-startPosition.getZ());
+            case G19 -> distanceWay = Calculator.vectorDistance(0,endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
             default -> distanceWay = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
         }
         if(additionalParameterMap.containsKey('R') && ((additionalParameterMap.containsKey('I') || additionalParameterMap.containsKey('J') || additionalParameterMap.containsKey('K')))){
@@ -173,7 +182,7 @@ public class G02_03 extends GCodeMove {
                 switch (plane){
                     case G17 -> {
                         // rotate Vector with Angle
-                        double radiansToMove = Math.toRadians(degreeToMove);
+                        double radiansToMove = direction*Math.toRadians(degreeToMove);
                         double i2 = Math.cos(radiansToMove)*additionalParameterMap.get('I')-Math.sin(radiansToMove)*additionalParameterMap.get('J');
                         double j2 = Math.sin(radiansToMove)*additionalParameterMap.get('I')+Math.cos(radiansToMove)*additionalParameterMap.get('J');
                         double xMove = additionalParameterMap.get('I')-i2;
@@ -184,7 +193,7 @@ public class G02_03 extends GCodeMove {
                     }
                     case G18 -> {
                         // rotate Vector with Angle
-                        double radiansToMove = Math.toRadians(degreeToMove);
+                        double radiansToMove = direction*Math.toRadians(degreeToMove);
                         double i2 = Math.cos(radiansToMove)*additionalParameterMap.get('I')-Math.sin(radiansToMove)*additionalParameterMap.get('K');
                         double k2 = Math.sin(radiansToMove)*additionalParameterMap.get('I')+Math.cos(radiansToMove)*additionalParameterMap.get('K');
                         double xMove = additionalParameterMap.get('I')-i2;
@@ -195,7 +204,7 @@ public class G02_03 extends GCodeMove {
                     }
                     case G19 -> {
                         // rotate Vector with Angle
-                        double radiansToMove = Math.toRadians(degreeToMove);
+                        double radiansToMove = direction*Math.toRadians(degreeToMove);
                         double j2 = Math.cos(radiansToMove)*additionalParameterMap.get('J')-Math.sin(radiansToMove)*additionalParameterMap.get('K');
                         double k2 = Math.sin(radiansToMove)*additionalParameterMap.get('J')+Math.cos(radiansToMove)*additionalParameterMap.get('K');
                         double jMove = additionalParameterMap.get('J')-j2;
@@ -205,15 +214,7 @@ public class G02_03 extends GCodeMove {
                         currentPosX = startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns);
                     }
                 }
-                axisPosition.setX(currentPosX);
-                axisPosition.setY(currentPosY);
-                axisPosition.setZ(currentPosZ);
-                if (animationModelOptional.isPresent()){
-                    animationModelOptional.get().createNewLine(new Vector(Color.BLACK, lineStartX, lineStartY, lineStartZ, currentPosX, currentPosY, currentPosZ));
-                    lineStartX = currentPosX;
-                    lineStartY = currentPosY;
-                    lineStartZ = currentPosZ;
-                }
+                drawAnimation(currentPosX,currentPosY,currentPosZ);
             }
         }
     }

@@ -18,9 +18,6 @@ import java.util.Map;
 
 public class ViewControllerModel {
 
-
-
-
     private final Map<CanalNames, StringProperty> cncProgramText = new HashMap<>();
 
     public ViewControllerModel() {

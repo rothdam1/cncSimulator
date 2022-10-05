@@ -24,22 +24,22 @@ import java.util.logging.Logger;
  * @since 2022-08-18
  */
 
-public class CNCCodeExecutes implements Callable<Boolean> {
+public class CNCCommandExecutor implements Callable<Boolean> {
 
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
-    private final CNCProgramCommand cncProgramCommand;
+    private final CNCCommand cncProgramCommand;
     private final CanalDataModel canalDataModel;
 
     private Optional<AnimationModel> animationModelOptional = Optional.empty() ;
     AtomicBoolean brakeRunningCode;
-    public CNCCodeExecutes(CNCProgramCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode) {
+    public CNCCommandExecutor(CNCCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode) {
         this.cncProgramCommand = cncProgramCommand;
         this.canalDataModel = canalDataModel;
         this.brakeRunningCode = brakeRunningCode;
     }
 
-    public CNCCodeExecutes(CNCProgramCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode, Optional<AnimationModel> animationModelOptional) {
+    public CNCCommandExecutor(CNCCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode, Optional<AnimationModel> animationModelOptional) {
         this(cncProgramCommand,canalDataModel,brakeRunningCode);
         this.animationModelOptional = animationModelOptional;
     }

@@ -16,9 +16,7 @@ import java.util.logging.Logger;
 public class G01 extends GCodeMove {
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
-    double lineStartX = 0;
-    double lineStartY = 0;
-    double lineStartZ = 0;
+
     public G01(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Map<AxisName,Double> parameter) throws Exception {
         super(codeNumber, feedOptions, spindleSpeed, startPosition,feed,new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()),parameter);
         distance = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
@@ -39,23 +37,10 @@ public class G01 extends GCodeMove {
            if (countOfCalculations < timesRuns) {
                finished.set(true);
            }else {
-               
-               double currentPosX;
-               double currentPosY ;
-               double currentPosZ ;
-               currentPosX =  startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns);
-               currentPosY = startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns);
-               currentPosZ = startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns);
-
-               axisPosition.setX(currentPosX);
-               axisPosition.setY(currentPosY);
-               axisPosition.setZ(currentPosZ);
-               if (animationModelOptional.isPresent()){
-                   animationModelOptional.get().createNewLine(new Vector(Color.BLACK, lineStartX, lineStartY, lineStartZ, currentPosX, currentPosY, currentPosZ));
-                   lineStartX = currentPosX;
-                   lineStartY = currentPosY;
-                   lineStartZ = currentPosZ;
-               }
+               double currentPosX =  startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns);
+               double currentPosY = startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns);
+               double currentPosZ = startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns);
+                drawAnimation(currentPosX,currentPosY,currentPosZ);
            }
        }
 

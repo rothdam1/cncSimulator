@@ -5,8 +5,6 @@ import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExis
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.layout.Pane;
-
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
@@ -20,7 +18,6 @@ public class CanalDataModel {
     private final SimpleDoubleProperty currentFeedRate = new SimpleDoubleProperty(0);
     private FeedOptions feedOptions = FeedOptions.FEED_PER_REVOLUTION;
     private final AtomicBoolean canalRunState = new AtomicBoolean(false);
-    private boolean RunLineIsCompleted = false;
     private final Map<SpindelNames, CNCSpindle> cncSpindles;
     private CanalState canalState = CanalState.STOP;
     private Plane plane;
@@ -28,7 +25,7 @@ public class CanalDataModel {
     public CanalDataModel(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles,Plane plane) {
         this.cncAxes = cncAxes;
         this.cncSpindles = cncSpindles;
-        this.plane = plane;
+        setPlane(plane);
     }
 
     public CNCSpindle getCurrentSelectedSpindle() {
@@ -83,13 +80,6 @@ public class CanalDataModel {
         this.feedOptions = feedOptions;
     }
 
-    public boolean isRunLineIsCompleted() {
-        return RunLineIsCompleted;
-    }
-
-    public void setRunLineIsCompleted(boolean runLineIsCompleted) {
-        RunLineIsCompleted = runLineIsCompleted;
-    }
 
     public Map<SpindelNames, CNCSpindle> getCncSpindles() {
         return cncSpindles;
