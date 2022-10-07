@@ -115,7 +115,7 @@
                                           <ToolBar prefHeight="40.0" prefWidth="200.0">
                                              <items>
                                                 <ToggleButton fx:id="runCNCButton" mnemonicParsing="false" onAction="#runCNCButtonClicked" text="run" />
-                                                <Button fx:id="stopCNCButton" mnemonicParsing="false" onAction="#breakRunningCNCButtonClicked" text="stop" />
+                                                <Button fx:id="stopCNCButton" mnemonicParsing="false" onAction="#breakRunningCNCButtonClicked" text="break" />
                                                 <Button mnemonicParsing="false" onAction="#resetCNCButtonClicked" text="reset" />
                                                 <Button mnemonicParsing="false" onAction="#goToNextStepCNCButtonClicked" text="nextS" />
                                              </items>
@@ -176,14 +176,14 @@
       </AnchorPane>
         <AnchorPane prefHeight="490.0" prefWidth="295.0">
                <children>
-                  <ButtonBar prefHeight="26.0" prefWidth="257.0" AnchorPane.bottomAnchor="464.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <ButtonBar buttonMinWidth="35.0" maxHeight="30.0" minHeight="30.0" prefHeight="30.0" prefWidth="257.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <buttons>
-                      <Button mnemonicParsing="false" onAction="#centerView" text="&gt;&lt;" />
-                        <Button mnemonicParsing="false" onAction="#zoomPlus" text="+" />
-                        <Button mnemonicParsing="false" onAction="#zoomMinus" text="-" />
+                      <Button maxWidth="20.0" minWidth="20.0" mnemonicParsing="false" onAction="#centerView" prefHeight="26.0" prefWidth="20.0" text="&gt;&lt;" />
+                        <Button maxWidth="20.0" minWidth="20.0" mnemonicParsing="false" onAction="#zoomPlus" prefHeight="20.0" prefWidth="20.0" text="+" />
+                        <Button maxWidth="20.0" minWidth="20.0" mnemonicParsing="false" onAction="#zoomMinus" prefWidth="20.0" text="-" />
                     </buttons>
                   </ButtonBar>
-                  <TabPane fx:id="cncAnimationView" layoutY="35.0" onMouseDragged="#mouseHandler" onMousePressed="#mouseClickedOnPanel" prefHeight="165.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="35.0" />
+                  <TabPane fx:id="cncAnimationView" layoutY="35.0" onMouseDragged="#mouseHandler" onMousePressed="#mouseClickedOnPanel" opacity="0.91" prefHeight="165.0" prefWidth="200.0" style="-fx-background-color: gray;" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0" />
                </children>
         </AnchorPane>
       </items>

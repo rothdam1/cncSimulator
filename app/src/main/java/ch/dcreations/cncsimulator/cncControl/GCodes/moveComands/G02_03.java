@@ -35,7 +35,7 @@ public class G02_03 extends GCodeMove {
         lineStartX = startPosition.getX();
         lineStartY = startPosition.getY();
         lineStartZ = startPosition.getZ();
-        direction =  (codeNumber == 2) ? 1 : -1;
+        direction =  (codeNumber == 3) ? 1 : -1;
     }
 
     private void setupParameterForCircle() throws IllegalFormatOfGCodeException {
@@ -68,22 +68,27 @@ public class G02_03 extends GCodeMove {
             }
         }
         // calculating angle between two points.
-        int xSign = (x2 > x2*-1) ? 1 : -1;
-        int ySign = (y2 > y2*-1) ? 1 : 1;
-        int xCSign = (xC > xC*-1) ? 1 : 1;
-        int yCSign = (yC > yC*-1) ? 1 : -1;
+        // check if the center point is right or left from the vektor
+        // to check if the circle is more then 180 degree
+        double xCInBasis2 = xC*x2+y2*y2;
+        double yCInBasis2 = xC*(-y2)+y2*x2;
+        xCInBasis2 = xCInBasis2 - (xCInBasis2%0.0001);
+        yCInBasis2 = yCInBasis2 - (yCInBasis2%0.0001);
+
+        int yCInBasis2Sign = (yCInBasis2 >= yCInBasis2*-1) ? 1 : -1;
+        int xCInBasis2Sign = (xCInBasis2 >= xCInBasis2*-1) ? 1 : -1;
         int directionSign = (directionAngle()) ? 1 : -1;
         double top = (x1-xC)*(x2-xC)+(y1-yC)*(y2-yC);
         double down1 = Math.sqrt((x1-xC)*(x1-xC)+(y1-yC)*(y1-yC));
         double down2 = Math.sqrt((x2-xC)*(x2-xC)+(y2-yC)*(y2-yC));
         double angle = Math.toDegrees(Math.acos(top/(down1*down2)));
         radius = Math.sqrt(xC*xC+yC*yC);
-        angle = (xCSign*yCSign*ySign*xSign*directionSign > 0) ? angle : angle;
+        angle = ((yCInBasis2Sign*xCInBasis2Sign*directionSign  > 0)) ? angle : 360- angle;
         return angle;
     }
 
     private boolean directionAngle() {
-        return codeNumber == 2;
+        return codeNumber == 3;
     }
 
     private void calculateParameter() {
@@ -104,16 +109,16 @@ public class G02_03 extends GCodeMove {
                 case G18 -> {
                     double legA =  Math.sqrt(x*x+z*z)/2;
                     double legB = (Math.sqrt(legC*legC-legA*legA));
-                    double multiplication = legB/(Math.sqrt((x/2)*(x/2)+((z/2)*(z/2))));
-                    additionalParameterMap.put('I',(-x/2)+multiplication*(-z/2));
-                    additionalParameterMap.put('K',(z/2)+multiplication*(x/2));
+                    double multiplication = legB/(Math.sqrt(x*x+z*z));
+                    additionalParameterMap.put('I',(x/2)+multiplication*(-1* direction2 *z));
+                    additionalParameterMap.put('K',(z/2)+multiplication*(direction2* x));
                 }
                 case G19 -> {
                     double legA =  Math.sqrt(z*z+y*y)/2;
                     double legB = Math.sqrt(legC*legC-legA*legA);
-                    double multiplication = legB/(Math.sqrt((y/2)*(y/2)+((z/2)*(z/2))));
-                    additionalParameterMap.put('J',(y/2)+multiplication*(-z/2));
-                    additionalParameterMap.put('K',(z/2)+multiplication*(y/2));
+                    double multiplication = legB/(Math.sqrt(z*z+y*y));
+                    additionalParameterMap.put('J',(y/2)+multiplication*(-1* direction2 *z));
+                    additionalParameterMap.put('K',(z/2)+multiplication*(direction2* y));
                 }
             }
         }else {
