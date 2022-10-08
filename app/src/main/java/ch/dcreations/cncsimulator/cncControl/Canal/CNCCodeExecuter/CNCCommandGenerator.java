@@ -38,7 +38,7 @@ public class CNCCommandGenerator {
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     public CNCCommandGenerator(CanalDataModel canalDataModel) {
-        this.canalDataModel = canalDataModel;
+        this.canalDataModel = canalDataModel;;
     }
 
     public CNCCommand splitCommands(String line) throws Exception {
@@ -86,7 +86,7 @@ public class CNCCommandGenerator {
         Position startPosition = new Position(canalDataModel.getCncAxes().get(AxisName.X).getAxisPosition(), canalDataModel.getCncAxes().get(AxisName.Y).getAxisPosition(), canalDataModel.getCncAxes().get(AxisName.Z).getAxisPosition(), 0, 0, 0);
         switch (Math.toIntExact(codeNumber)) {
             case 1 -> gCode = new G01(codeNumber, canalDataModel.getFeedOptions(), canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(), startPosition, canalDataModel.currentFeedRateProperty(), parameters);
-            case 2,3 -> gCode = new G02_03(codeNumber,canalDataModel.getFeedOptions(),canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(), startPosition, canalDataModel.currentFeedRateProperty(), parameters,additionalParameterMap,canalDataModel.getPlane());
+            case 2,3 -> gCode = new G02_03(codeNumber,canalDataModel.getFeedOptions(),canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(), startPosition, canalDataModel.currentFeedRateProperty(), parameters,additionalParameterMap,canalDataModel.getPlane(),canalDataModel.getCalculationErrorMaxInCircle());
             case 97 -> canalDataModel.getCurrentSelectedSpindle().setSpindleRotationOption(CONSTANT_ROTATION);
             case 96 -> canalDataModel.getCurrentSelectedSpindle().setSpindleRotationOption(CONSTANT_SURFACE_SPEED, getCNCAxisProperty(AxisName.X));
             case 98 ->  canalDataModel.setFeedOptions(FeedOptions.FEED_PER_MINUITE);
@@ -101,10 +101,10 @@ public class CNCCommandGenerator {
 
     //@todo Better Code Check of the Value
     private Character checkAndGetCodeWord(String code) throws Exception {
-        if (code.length() < 2 && !code.matches(Config.END_OF_PROGRAM_SIMBOLE))
+        if (code.length() < 2 && !code.matches(Config.END_OF_PROGRAM_SYMBOLE))
             throw new IllegalArgumentException("CODE TO SHORT=" + code);
         if (!code.substring(0, 1).matches("[A-Za-z,%]")) throw new Exception("DOES NOT HAVE A COMMAND" + code);
-        if (!code.matches(Config.END_OF_PROGRAM_SIMBOLE)) {
+        if (!code.matches(Config.END_OF_PROGRAM_SYMBOLE)) {
             if (!code.substring(1).matches("[-0-9.]*")) throw new Exception("VALUE IS NOT RIGHT" + code);
         }
         return code.charAt(0);

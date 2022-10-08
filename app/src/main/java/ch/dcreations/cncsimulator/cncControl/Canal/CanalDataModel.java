@@ -22,9 +22,12 @@ public class CanalDataModel {
     private CanalState canalState = CanalState.STOP;
     private Plane plane;
 
-    public CanalDataModel(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles,Plane plane) {
+    private final double calculationErrorMaxInCircle;
+
+    public CanalDataModel(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles, Plane plane, double caclulationErroMaxInCircle) {
         this.cncAxes = cncAxes;
         this.cncSpindles = cncSpindles;
+        this.calculationErrorMaxInCircle = caclulationErroMaxInCircle;
         setPlane(plane);
     }
 
@@ -96,5 +99,9 @@ public class CanalDataModel {
 
     public void setPlane(Plane plane) {
         this.plane = plane;
+    }
+
+    public double getCalculationErrorMaxInCircle() {
+        return calculationErrorMaxInCircle;
     }
 }

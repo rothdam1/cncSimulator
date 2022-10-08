@@ -101,7 +101,7 @@ public class AnimationModel {
         StraightLine straightLine = new StraightLine(new Vector(vector.getColor(), vector.getStartX(), vector.getStartY(), vector.getStartZ(), vector.getEndX(), vector.getEndY(), vector.getEndZ()),new Line(),offset);
         bodyList.add(straightLine);
         Platform.runLater(()-> drawingPane.getChildren().add(straightLine.getDrawingLine()));
-        Platform.runLater(()-> update());
+        update();
     }
 
     public void zoomPlus() {

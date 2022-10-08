@@ -32,9 +32,11 @@ public abstract class GCode {
     protected ObservableIntegerValue spindleSpeed;
     protected Position startPosition;
 
+
+
     protected SimpleDoubleProperty feed;
 
-    public GCode(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed) {
+    public GCode(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed ) {
         this.codeNumber = codeNumber;
         this.feedOptions = feedOptions;
         this.spindleSpeed = spindleSpeed;
@@ -50,10 +52,12 @@ public abstract class GCode {
         finished.set(false);
         int timesRuns = 0;
         while (run.get() && !finished.get()) {
-            Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION);
             if (!brakeRunningCode.get()){
                 calculatePosition(timesRuns, Config.POSITION_CALCULATION_RESOLUTION);
                 timesRuns++;
+            }
+            if (!finished.get()) {
+                Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION);
             }
         }
         finished.set(true);

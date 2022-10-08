@@ -11,5 +11,5 @@ package ch.dcreations.cncsimulator.cncControl.Canal;
  */
 public enum CanalNames {
     CANAL1,
-    CANAL2
+    CANAL2,
 }

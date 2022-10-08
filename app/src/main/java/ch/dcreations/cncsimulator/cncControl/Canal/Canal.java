@@ -5,10 +5,10 @@ import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommandGen
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommandExecutor;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommand;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.*;
+import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
-
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,10 +38,11 @@ public class Canal implements Callable<Boolean> {
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
     private Optional<AnimationModel> animationModelOptional = Optional.empty();
 
-    public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles) {
+
+    public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles ) {
         super();
         try {
-            canalDataModel = new CanalDataModel(cncAxes, cncSpindles, Plane.G18);
+            canalDataModel = new CanalDataModel(cncAxes, cncSpindles, Plane.G18, Config.CALCULATION_ERROR_MAX_FOR_CIRCLE_END_POINT);
             canalDataModel.setCurrentSelectedSpindle(SpindelNames.S1);
         } catch (Exception e) {
             logger.log(Level.WARNING, e.getMessage());

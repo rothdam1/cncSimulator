@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -202,7 +203,8 @@ public class ViewController {
             CNCVBox.getChildren().add(labelCanalName);
             for (AxisName axisName :  cncAxis.keySet().stream().sorted().toList()) {
                 Label label = new Label();
-                label.textProperty().bind(Bindings.concat(axisName,canalNumber," ",cncAxis.get(axisName).axisPositionProperty().asString()));
+                DecimalFormat df = new DecimalFormat("###.###");
+                label.textProperty().bind(Bindings.concat(axisName,canalNumber," ",cncAxis.get(axisName).axisPositionProperty().asString("%.5f")));
                 CNCVBox.getChildren().add(label);
             }
             canalNumber++;

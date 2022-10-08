@@ -20,44 +20,47 @@ public class Config {
 
     public final static int POSITION_CALCULATION_RESOLUTION = 100;
 
-    public static String END_OF_PROGRAM_SIMBOLE = "%";
+    public final static double CALCULATION_ERROR_MAX_FOR_CIRCLE_END_POINT = 0.5; // if G2 X Y I J ;
 
-    public static Map<AxisName, CNCAxis> GET_CNC_AXIS_CANAL1(){
-        Map<AxisName,CNCAxis> cncAxes = new HashMap<>();
-        cncAxes.put(AxisName.X,new CNCAxis());
-        cncAxes.put(AxisName.Y,new CNCAxis());
-        cncAxes.put(AxisName.Z,new CNCAxis());
-        cncAxes.put(AxisName.C,new CNCAxis());
+    public static String END_OF_PROGRAM_SYMBOLE = "%";
+
+    public static Map<AxisName, CNCAxis> GET_CNC_AXIS_CANAL1() {
+        Map<AxisName, CNCAxis> cncAxes = new HashMap<>();
+        cncAxes.put(AxisName.X, new CNCAxis());
+        cncAxes.put(AxisName.Y, new CNCAxis());
+        cncAxes.put(AxisName.Z, new CNCAxis());
+        cncAxes.put(AxisName.C, new CNCAxis());
         return cncAxes;
     }
 
-    public static Map<SpindelNames, CNCSpindle> GET_CNC_SPINDLES_CANAL1(){
-        Map<SpindelNames,CNCSpindle> spindles = new HashMap<>();
-        spindles.put(SpindelNames.S1,new CNCSpindle(SpindelRotationOption.CONSTANT_ROTATION));
-        spindles.put(SpindelNames.S11,new CNCSpindle(SpindelRotationOption.CONSTANT_ROTATION));
+    public static Map<SpindelNames, CNCSpindle> GET_CNC_SPINDLES_CANAL1() {
+        Map<SpindelNames, CNCSpindle> spindles = new HashMap<>();
+        spindles.put(SpindelNames.S1, new CNCSpindle(SpindelRotationOption.CONSTANT_ROTATION));
+        spindles.put(SpindelNames.S11, new CNCSpindle(SpindelRotationOption.CONSTANT_ROTATION));
         return spindles;
     }
 
-    public static Map<SpindelNames,CNCSpindle> GET_CNC_SPINDLES_CANAL2(){
-        Map<SpindelNames,CNCSpindle> spindles = new HashMap<>();
-        spindles.put(SpindelNames.S1,new CNCSpindle(SpindelRotationOption.CONSTANT_ROTATION));
-        spindles.put(SpindelNames.S11,new CNCSpindle(SpindelRotationOption.CONSTANT_ROTATION));
+    public static Map<SpindelNames, CNCSpindle> GET_CNC_SPINDLES_CANAL2() {
+        Map<SpindelNames, CNCSpindle> spindles = new HashMap<>();
+        spindles.put(SpindelNames.S1, new CNCSpindle(SpindelRotationOption.CONSTANT_ROTATION));
+        spindles.put(SpindelNames.S11, new CNCSpindle(SpindelRotationOption.CONSTANT_ROTATION));
         return spindles;
     }
 
-    public static Map<AxisName,CNCAxis>  GET_CNC_AXIS_CANAL2(){
-        Map<AxisName,CNCAxis> cncAxes = new HashMap<>();
-        cncAxes.put(AxisName.X,new CNCAxis());
-        cncAxes.put(AxisName.Y,new CNCAxis());
-        cncAxes.put(AxisName.Z,new CNCAxis());
-        cncAxes.put(AxisName.C,new CNCAxis());
+    public static Map<AxisName, CNCAxis> GET_CNC_AXIS_CANAL2() {
+        Map<AxisName, CNCAxis> cncAxes = new HashMap<>();
+        cncAxes.put(AxisName.X, new CNCAxis());
+        cncAxes.put(AxisName.Y, new CNCAxis());
+        cncAxes.put(AxisName.Z, new CNCAxis());
+        cncAxes.put(AxisName.C, new CNCAxis());
         return cncAxes;
     }
 
     public static List<Canal> GET_CNC_CANALS() {
         List<Canal> cncCanals = new ArrayList<>();
-        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL1(),GET_CNC_SPINDLES_CANAL1()));
-        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL2(),GET_CNC_SPINDLES_CANAL2()));
+        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL1(), GET_CNC_SPINDLES_CANAL1()));
+        cncCanals.add(new Canal(GET_CNC_AXIS_CANAL2(), GET_CNC_SPINDLES_CANAL2()));
         return cncCanals;
     }
 }
+

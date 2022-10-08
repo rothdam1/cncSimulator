@@ -5,12 +5,12 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
 public class Position {
-    SimpleDoubleProperty x = new SimpleDoubleProperty();
-    SimpleDoubleProperty y = new SimpleDoubleProperty();
-    SimpleDoubleProperty z = new SimpleDoubleProperty();
-    SimpleDoubleProperty a = new SimpleDoubleProperty();
-    SimpleDoubleProperty b = new SimpleDoubleProperty();
-    SimpleDoubleProperty c = new SimpleDoubleProperty();
+   protected SimpleDoubleProperty x = new SimpleDoubleProperty();
+    protected SimpleDoubleProperty y = new SimpleDoubleProperty();
+    protected SimpleDoubleProperty z = new SimpleDoubleProperty();
+    protected SimpleDoubleProperty a = new SimpleDoubleProperty();
+    protected SimpleDoubleProperty b = new SimpleDoubleProperty();
+    protected SimpleDoubleProperty c = new SimpleDoubleProperty();
 
     public Position(double x, double y, double z) {
         this(x,y,z,0.0,0.0,0.0);

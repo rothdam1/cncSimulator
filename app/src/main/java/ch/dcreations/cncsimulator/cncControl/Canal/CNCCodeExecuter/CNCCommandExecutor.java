@@ -59,7 +59,7 @@ public class CNCCommandExecutor implements Callable<Boolean> {
                 gCode.execute(canalDataModel.getCanalRunState(),brakeRunningCode);
             }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "RUN TIME EXCEPTION");
+            logger.log(Level.WARNING, e.getMessage());
         } finally {
             unbindAxis();
         }
@@ -67,7 +67,7 @@ public class CNCCommandExecutor implements Callable<Boolean> {
     }
 
     private void bindAxis(Position axisPosition) {
-        canalDataModel.getCncAxes().get(AxisName.X).axisPositionProperty().bind(axisPosition.xProperty());
+        canalDataModel.getCncAxes().get(AxisName.X).axisPositionProperty().bindBidirectional(axisPosition.xProperty());
         canalDataModel.getCncAxes().get(AxisName.Y).axisPositionProperty().bind(axisPosition.yProperty());
         canalDataModel.getCncAxes().get(AxisName.Z).axisPositionProperty().bind(axisPosition.zProperty());
     }
