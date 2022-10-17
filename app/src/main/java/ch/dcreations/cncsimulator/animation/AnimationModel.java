@@ -10,7 +10,7 @@ import javafx.scene.shape.Line;
 import java.util.LinkedList;
 import java.util.List;
 
-public class AnimationModel {
+public class AnimationModel implements CNCAnimation {
 
     private final Offset offset = new Offset() ;
 
@@ -29,7 +29,7 @@ public class AnimationModel {
         update();
     }
 
-    private void createCoordinateSystem(Pane drawingPane) {
+    private void createCoordinateSystem(Pane drawingPane)  {
         coordinateLines.add(new StraightLine(new Vector(Color.BLUE, 0, 0, 0, 50, 0, 0), new Line(), offset));
         coordinateLines.add(new StraightLine(new Vector(Color.RED,0,0,0,0,50,0),new Line(),offset));
         coordinateLines.add(new StraightLine(new Vector(Color.GREEN,0,0,0,0,0,50),new Line(),offset));
@@ -49,23 +49,19 @@ public class AnimationModel {
     }
 
     public void update(){
-        Platform.runLater(() ->coordinateLines.forEach(i -> tranformAxis(i)));
-        Platform.runLater(() -> bodyList.forEach(i -> tranformAxis(i)));
+        RoomMatrix transformationMatrix = new RoomMatrix();
+        transformationMatrix.resetMatrix();
+        transformationMatrix.rotationWinkelX(rotationX);
+        transformationMatrix.rotationWinkelY(rotationY);
+        transformationMatrix.rotationWinkelZ(rotationZ);
+        transformationMatrix.zoom(zoomFactor);
+        Platform.runLater(() ->coordinateLines.forEach(i -> tranformAxis(i,transformationMatrix)));
+        Platform.runLater(() -> bodyList.forEach(i -> tranformAxis(i,transformationMatrix)));
     }
-    private void tranformAxis(StraightLine straightLine ){
+    private void tranformAxis(StraightLine straightLine,RoomMatrix roomMatrixI ){
         Vector tranformation = straightLine.getBaseAxis();
-        roomMatrix.rotationWinkelX(rotationX);
-        tranformation = roomMatrix.drawBody(tranformation);
-        roomMatrix.rotationWinkelY(rotationY);
-        tranformation = roomMatrix.drawBody(tranformation);
-        roomMatrix.rotationWinkelX(rotationX);
-        tranformation = roomMatrix.drawBody(tranformation);
-        roomMatrix.rotationWinkelZ(rotationZ);
-        tranformation = roomMatrix.drawBody(tranformation);
-        roomMatrix.zoom(zoomFactor);
-        tranformation = roomMatrix.drawBody(tranformation);
-        straightLine.setViewAxis(tranformation);
-        straightLine.updateAxis();
+        tranformation = roomMatrixI.drawAngle(tranformation);
+        straightLine.updateAxis(tranformation.getStartX(), tranformation.getStartY(), tranformation.getEndX(), tranformation.getEndY());
     };
 
     public void rotateXAxis(double degree){
@@ -101,7 +97,6 @@ public class AnimationModel {
         StraightLine straightLine = new StraightLine(new Vector(vector.getColor(), vector.getStartX(), vector.getStartY(), vector.getStartZ(), vector.getEndX(), vector.getEndY(), vector.getEndZ()),new Line(),offset);
         bodyList.add(straightLine);
         Platform.runLater(()-> drawingPane.getChildren().add(straightLine.getDrawingLine()));
-        update();
     }
 
     public void zoomPlus() {

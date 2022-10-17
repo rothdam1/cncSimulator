@@ -1,6 +1,7 @@
 package ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter;
 
 import ch.dcreations.cncsimulator.animation.AnimationModel;
+import ch.dcreations.cncsimulator.animation.CNCAnimation;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalDataModel;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
@@ -31,7 +32,7 @@ public class CNCCommandExecutor implements Callable<Boolean> {
     private final CNCCommand cncProgramCommand;
     private final CanalDataModel canalDataModel;
 
-    private Optional<AnimationModel> animationModelOptional = Optional.empty() ;
+    private Optional<CNCAnimation> animationModelOptional = Optional.empty() ;
     AtomicBoolean brakeRunningCode;
     public CNCCommandExecutor(CNCCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode) {
         this.cncProgramCommand = cncProgramCommand;
@@ -39,7 +40,7 @@ public class CNCCommandExecutor implements Callable<Boolean> {
         this.brakeRunningCode = brakeRunningCode;
     }
 
-    public CNCCommandExecutor(CNCCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode, Optional<AnimationModel> animationModelOptional) {
+    public CNCCommandExecutor(CNCCommand cncProgramCommand, CanalDataModel canalDataModel, AtomicBoolean brakeRunningCode, Optional<CNCAnimation> animationModelOptional) {
         this(cncProgramCommand,canalDataModel,brakeRunningCode);
         this.animationModelOptional = animationModelOptional;
     }

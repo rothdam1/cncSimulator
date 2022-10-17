@@ -1,6 +1,7 @@
 package ch.dcreations.cncsimulator.cncControl;
 
 import ch.dcreations.cncsimulator.animation.AnimationModel;
+import ch.dcreations.cncsimulator.animation.CNCAnimation;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
@@ -187,7 +188,7 @@ public class CNCControl {
         canals.forEach(Canal::breakRunningCode);
     }
 
-    public void setAnimationView(List<AnimationModel> cncAnimationView) {
+    public void setAnimationView(List<CNCAnimation> cncAnimationView) {
         for (int i = 0; i < canals.size(); i++) {
             canals.get(i).addAnimationModel(cncAnimationView.get(i));
         }

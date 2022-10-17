@@ -9,6 +9,7 @@ import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -35,30 +36,19 @@ public class G01 extends GCodeMove {
         lineStartZ = startPosition.getZ();
     }
 
-    @Override
-    protected void calculatePosition(int timesRuns, int positionCalculationResolution) throws Exception {
-        if(feed.get() == 0) throw new Exception("Feed rate us 0");
-        if(distance == 0){
-            axisPosition.setX(endPosition.getX());
-            axisPosition.setY(endPosition.getY());
-            axisPosition.setZ(endPosition.getZ());
-           finished.set(true);
-       }else {
-           double timeMS = (feedOptions == FeedOptions.FEED_PER_REVOLUTION) ?
-                   (60*((distance / feed.get()) / spindleSpeed.get()) * 1000) : ((60*(distance / feed.get())) * 1000);
-           double countOfCalculations = Math.ceil(timeMS / positionCalculationResolution);
-           if (countOfCalculations < timesRuns) {
-               finished.set(true);
-           }else {
-               double currentPosX =  startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / countOfCalculations) * timesRuns);
-               double currentPosY = startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / countOfCalculations) * timesRuns);
-               double currentPosZ = startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / countOfCalculations) * timesRuns);
-               axisPosition.setX(currentPosX);
-               axisPosition.setY(currentPosY);
-               axisPosition.setZ(currentPosZ);
-               setPositionAndDrawAnimation(currentPosX,currentPosY,currentPosZ);
-           }
-       }
 
+    protected Map<AxisName, Double> calculatePosition(int timesRuns, int resolution) throws Exception {
+        Map<AxisName, Double> posistionMap = new HashMap<>();
+        if(feed.get() == 0) throw new Exception("Feed rate us 0");
+        if(distance != 0){
+            double currentPosX =  startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / resolution) * timesRuns);
+               double currentPosY = startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / resolution) * timesRuns);
+               double currentPosZ = startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / resolution) * timesRuns);
+               posistionMap.put(AxisName.X, currentPosX);
+               posistionMap.put(AxisName.Y, currentPosY);
+               posistionMap.put(AxisName.Z, currentPosZ);
+
+           }
+        return posistionMap;
     }
 }

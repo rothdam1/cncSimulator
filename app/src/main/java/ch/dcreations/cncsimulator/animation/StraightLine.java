@@ -15,6 +15,8 @@ public class StraightLine {
             this.baseVector = baseVector;
             this.drawingLine = drawingLine;
             this.viewVector =  new Vector(baseVector.getColor(), baseVector.getStartX(), baseVector.getStartY(), baseVector.getStartZ(), baseVector.getEndX(), baseVector.getEndY(), baseVector.getEndZ());
+            drawingLine.setStroke(viewVector.getColor());
+            drawingLine.setStrokeWidth(1);
             updateAxis();
       }
 
@@ -28,9 +30,14 @@ public class StraightLine {
         drawingLine.setStartY(viewVector.getStartY()+offset.getYOffset());
         drawingLine.setEndX(viewVector.getEndX()+offset.getXOffset());
         drawingLine.setEndY(viewVector.getEndY()+offset.getYOffset());
-        drawingLine.setStroke(viewVector.getColor());
-        drawingLine.setStrokeWidth(2);
     }
+    public void updateAxis(double startX,double startY,double endX, double endY){
+        drawingLine.setStartX(startX+offset.getXOffset());
+        drawingLine.setStartY(startY+offset.getYOffset());
+        drawingLine.setEndX(endX+offset.getXOffset());
+        drawingLine.setEndY(endY+offset.getYOffset());
+    }
+
 
     public Vector getBaseAxis() {
         return baseVector;

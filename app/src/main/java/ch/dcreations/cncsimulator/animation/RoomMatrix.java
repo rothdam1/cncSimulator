@@ -1,9 +1,9 @@
 package ch.dcreations.cncsimulator.animation;
 
 public class RoomMatrix {
-    private final double[][] addMatrix = new double[3][3];
+    private double[][] addMatrix = new double[3][3];
 
-    private final double[][] standardMatrix = new double[3][3];
+    private double[][] standardMatrix = new double[3][3];
 
 
 
@@ -22,6 +22,7 @@ public class RoomMatrix {
         addMatrix[2][0] = 0;
         addMatrix[2][1] = 0;
         addMatrix[2][2] = 1;
+        matrixMultiplication(addMatrix);
     }
 
 
@@ -37,10 +38,10 @@ public class RoomMatrix {
         addMatrix[2][0] = 0;
         addMatrix[2][1] = Math.sin(Math.toRadians(winkel));
         addMatrix[2][2] = Math.cos(Math.toRadians(winkel));
+        matrixMultiplication(addMatrix);
     }
 
     public void rotationWinkelY(double winkel) {
-
         addMatrix[0][0] = Math.cos(Math.toRadians(winkel));
         addMatrix[0][1] = 0;
         addMatrix[0][2] = Math.sin(Math.toRadians(winkel));
@@ -50,6 +51,7 @@ public class RoomMatrix {
         addMatrix[2][0] = Math.sin(Math.toRadians(winkel)) * -1;
         addMatrix[2][1] = 0;
         addMatrix[2][2] = Math.cos(Math.toRadians(winkel));
+        matrixMultiplication(addMatrix);
     }
 
 
@@ -64,11 +66,16 @@ public class RoomMatrix {
         addMatrix[2][0] = 0;
         addMatrix[2][1] = 0;
         addMatrix[2][2] = factor;
-
+        matrixMultiplication(addMatrix);
     }
+
 
     public Vector drawBody(Vector vector) {
         return getAxis(vector, addMatrix);
+    }
+
+    public Vector drawAngle(Vector vector) {
+        return getAxis(vector, standardMatrix);
     }
 
 
@@ -111,6 +118,22 @@ public class RoomMatrix {
         invMatrix[2][2] = 1;
     }
 
+    private void matrixMultiplication(double[][] b){
+        int length = standardMatrix.length;
+        double[][] result = new double[length][length];
+        for (int i= 0;i<length;i++){
+            for (int j= 0;j<length;j++){
+                double value = 0;
+                for (int k= 0;k<length;k++){
+                    value = value +( standardMatrix[k][j] * b[i][k]);
+                }
+                result[i][j] =value;
+            }
+        }
+        standardMatrix = result;
+        return;
+    }
+
     private double[][] matrixMultiplication(double[][] a,double[][] b){
         int length = a.length;
         double[][] result = new double[length][length];
@@ -125,5 +148,6 @@ public class RoomMatrix {
         }
         return result;
     }
+
 
 }

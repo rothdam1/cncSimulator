@@ -1,5 +1,6 @@
 package ch.dcreations.cncsimulator.gui;
 import ch.dcreations.cncsimulator.animation.AnimationModel;
+import ch.dcreations.cncsimulator.animation.CNCAnimation;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.CNCControl;
@@ -79,7 +80,7 @@ public class ViewController {
     private double xPos = 0;
     private double yPos = 0;
 
-    private final List<AnimationModel> animationModelList = new LinkedList<>();
+    private final List<CNCAnimation> animationModelList = new LinkedList<>();
     @FXML
     public void initialize() {
        initialize(new Config(),new CNCControl(Config.GET_CNC_CANALS()));
@@ -138,7 +139,7 @@ public class ViewController {
     }
     @FXML
     private void mouseHandler(MouseEvent event) {
-                AnimationModel animationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
+                CNCAnimation animationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
                 //Transformation
                 if (event.isSecondaryButtonDown()){
                      animationModel.moveXAxis(getMouseX(event) - xPos);
@@ -171,7 +172,7 @@ public class ViewController {
 
     @FXML
     private void centerView() {
-        AnimationModel selectedAnimationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
+        CNCAnimation selectedAnimationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
         selectedAnimationModel.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
         selectedAnimationModel.resetView();
     }

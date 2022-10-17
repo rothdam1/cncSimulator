@@ -1,6 +1,7 @@
 package ch.dcreations.cncsimulator.cncControl.Canal;
 
 import ch.dcreations.cncsimulator.animation.AnimationModel;
+import ch.dcreations.cncsimulator.animation.CNCAnimation;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommandGenerator;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommandExecutor;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommand;
@@ -36,7 +37,7 @@ public class Canal implements Callable<Boolean> {
     private String cncProgramText = "";
     private final AtomicBoolean brakeRunningCode = new AtomicBoolean(false);
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
-    private Optional<AnimationModel> animationModelOptional = Optional.empty();
+    private Optional<CNCAnimation> animationModelOptional = Optional.empty();
 
 
     public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles ) {
@@ -85,13 +86,14 @@ public class Canal implements Callable<Boolean> {
         programLinePosition.set(0);
         if (areAllCallsFinished()) {
             while (programLinePosition.get() <= countOfProgramLines - 2) {
-                waitUntilCallsAreFinished();
+
                 runNextLine(lines[programLinePosition.get()]);
             }
         }
     }
 
     private void runNextLine(String line) throws Exception {
+        waitUntilCallsAreFinished();
         CNCCommandGenerator cncCommandDecoder = new CNCCommandGenerator(canalDataModel);
         CNCCommand cncProgramCommand = cncCommandDecoder.splitCommands(line);
         goToNextLine();
@@ -101,7 +103,7 @@ public class Canal implements Callable<Boolean> {
     private void waitUntilCallsAreFinished() {
         futures.forEach((x) -> {
             try {
-                x.get(5, TimeUnit.SECONDS);
+                x.get(5000, TimeUnit.SECONDS);
             } catch (Exception e) {
                 x.cancel(false);
             }
@@ -194,7 +196,7 @@ public class Canal implements Callable<Boolean> {
         return allCallsFinished;
     }
 
-    public void addAnimationModel(AnimationModel animationModel) {
+    public void addAnimationModel(CNCAnimation animationModel) {
         animationModelOptional = Optional.of(animationModel);
     }
 }

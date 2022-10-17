@@ -1,12 +1,16 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes;
 
 import ch.dcreations.cncsimulator.animation.AnimationModel;
+import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -49,23 +53,9 @@ public abstract class GCode {
     }
 
     public void execute(AtomicBoolean run, AtomicBoolean brakeRunningCode ) throws Exception {
-        finished.set(false);
-        int timesRuns = 0;
-        while (run.get() && !finished.get()) {
-            if (!brakeRunningCode.get()){
-                calculatePosition(timesRuns, Config.POSITION_CALCULATION_RESOLUTION);
-                timesRuns++;
-            }
-            if (!finished.get()) {
-                Thread.sleep(Config.POSITION_CALCULATION_RESOLUTION);
-            }
-        }
         finished.set(true);
     }
 
-    protected void calculatePosition(int timesRuns, int positionCalculationResolution) throws Exception {
-        finished.set(true);
-    }
 
 
 }
