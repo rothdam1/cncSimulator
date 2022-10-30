@@ -1,20 +1,29 @@
 package ch.dcreations.cncsimulator.cncControl.Canal;
 
-import ch.dcreations.cncsimulator.animation.AnimationModel;
-import ch.dcreations.cncsimulator.animation.CNCAnimation;
+import ch.dcreations.cncsimulator.animation.Vector;
+import ch.dcreations.cncsimulator.cncControl.CNCProgram;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommandGenerator;
-import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommandExecutor;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCCodeExecuter.CNCCommand;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.*;
+import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.beans.value.ObservableIntegerValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.scene.paint.Color;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static ch.dcreations.cncsimulator.config.Config.VIEW_ACTUALISATION_MULTIPLICATION;
 
 /**
  * <p>
@@ -29,19 +38,28 @@ import java.util.logging.Logger;
 public class Canal implements Callable<Boolean> {
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    //private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private final List<Future<Boolean>> futures = new LinkedList<>();
     private CanalDataModel canalDataModel;
     private int countOfProgramLines = 0;
-    private String cncProgramText = "";
+    private CNCProgram cncProgramText = new CNCProgram("");
+
+
+    private Position startPosition = new Position(0,0,0,0,0,0);
     private final AtomicBoolean brakeRunningCode = new AtomicBoolean(false);
+
+    private final AtomicBoolean canalRunningGCode = new AtomicBoolean(false);
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
-    private Optional<CNCAnimation> animationModelOptional = Optional.empty();
+
+    private final SimpleIntegerProperty executionGodeLinePosition = new SimpleIntegerProperty(0);
+    private List<Vector> linesToDraw = new LinkedList<>();
+    private List<List<Map<AxisName, Double>>> ProgramLinesPaths = new LinkedList<>();
 
 
     public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles ) {
         super();
+
         try {
             canalDataModel = new CanalDataModel(cncAxes, cncSpindles, Plane.G18, Config.CALCULATION_ERROR_MAX_FOR_CIRCLE_END_POINT);
             canalDataModel.setCurrentSelectedSpindle(SpindelNames.S1);
@@ -54,12 +72,12 @@ public class Canal implements Callable<Boolean> {
     public Boolean call() {
         try {
             if (cncProgramText != null) {
-                String[] lines = cncProgramText.replace("\n", "").split(";");
-                countOfProgramLines = lines.length;
+
+                countOfProgramLines = cncProgramText.countOfLines();
                 canalDataModel.setCanalRunState(true);
                 switch (canalDataModel.getCanalState()) {
-                    case SINGLE_STEP -> runNextLine(lines[programLinePosition.get()]);
-                    case RUN -> runAllLines(lines);
+                    case SINGLE_STEP -> runNextLine();
+                    case RUN -> runAllLines();
                 }
             }
         } catch (Exception e) {
@@ -74,30 +92,72 @@ public class Canal implements Callable<Boolean> {
     }
 
     public void setProgram(String programText) {
-        cncProgramText = programText + ";\n%";// ADD an END OF FILE
+        cncProgramText.setProgramText(programText);
+        cncProgramText.addProgramText(";\n%");// ADD an END OF FILE
     }
 
     public String getProgramText() {
-        return cncProgramText;
+        return cncProgramText.getProgramTextAsText();
     }
 
 
-    private void runAllLines(String[] lines) throws Exception {
+    private void runAllLines() throws Exception {
         programLinePosition.set(0);
-        if (areAllCallsFinished()) {
+        caculatePath(startPosition);
             while (programLinePosition.get() <= countOfProgramLines - 2) {
-
-                runNextLine(lines[programLinePosition.get()]);
+                runNextLine();
             }
-        }
     }
 
-    private void runNextLine(String line) throws Exception {
-        waitUntilCallsAreFinished();
-        CNCCommandGenerator cncCommandDecoder = new CNCCommandGenerator(canalDataModel);
-        CNCCommand cncProgramCommand = cncCommandDecoder.splitCommands(line);
+
+    private void runNextLine() throws Exception {
+        runProgramCode(programLinePosition.get());
         goToNextLine();
-        executeNCCommand(cncProgramCommand);
+    }
+
+    private void runProgramCode(int lineNumber) {
+        canalRunningGCode.set(true);
+        double x =0 ;
+        double y =0;
+        double z = 0;
+        for( Map<AxisName, Double> lines :  ProgramLinesPaths.get(lineNumber)){
+            linesToDraw.add(new Vector(Color.BLACK,x,y,z, lines.get(AxisName.X),lines.get(AxisName.Y),lines.get(AxisName.Z)));
+            x= (lines.get(AxisName.X));
+            y = (lines.get(AxisName.Y));
+           z = (lines.get(AxisName.Z));
+        }
+        int i = 0;
+        int j = 0;
+        try {
+            while (i < ProgramLinesPaths.get(lineNumber).size()&& getCanalRunState()) {
+                long milisec = (long) (Config.POSITION_CALCULATION_RESOLUTION * 100);
+                Thread.sleep(VIEW_ACTUALISATION_MULTIPLICATION * milisec);
+                x = ProgramLinesPaths.get(lineNumber).get(i).get(AxisName.X);
+                y = ProgramLinesPaths.get(lineNumber).get(i).get(AxisName.Y);
+                z = ProgramLinesPaths.get(lineNumber).get(i).get(AxisName.Z);
+
+                canalDataModel.getCncAxes().get(AxisName.X).setValue(x);
+                canalDataModel.getCncAxes().get(AxisName.Y).setValue(y);
+                canalDataModel.getCncAxes().get(AxisName.Z).setValue(z);
+                if (!brakeRunningCode.get()){
+                    executionGodeLinePosition.set(executionGodeLinePosition.get() + i - j);
+                j = i;
+                i = i + VIEW_ACTUALISATION_MULTIPLICATION;
+            }
+            }
+            if (ProgramLinesPaths.get(lineNumber).size()>1) {
+                x = ProgramLinesPaths.get(lineNumber).get(ProgramLinesPaths.get(lineNumber).size() - 1).get(AxisName.X);
+                y = ProgramLinesPaths.get(lineNumber).get(ProgramLinesPaths.get(lineNumber).size() - 1).get(AxisName.Y);
+                z = ProgramLinesPaths.get(lineNumber).get(ProgramLinesPaths.get(lineNumber).size() - 1).get(AxisName.Z);
+                canalDataModel.getCncAxes().get(AxisName.X).setValue(x);
+                canalDataModel.getCncAxes().get(AxisName.Y).setValue(y);
+                canalDataModel.getCncAxes().get(AxisName.Z).setValue(z);
+            }
+        }catch (Exception e){
+            logger.log(Level.WARNING,"caculate PATH"+e.getMessage());
+        }finally {
+            canalRunningGCode.set(false);
+        }
     }
 
     private void waitUntilCallsAreFinished() {
@@ -112,23 +172,10 @@ public class Canal implements Callable<Boolean> {
 
     private boolean areAllCallsFinished() {
         boolean allCallsFinished = true;
-        for (Future<Boolean> call : futures) {
-            if (!call.isDone()) {
-                logger.log(Level.INFO, "CALL IS NOT FINISHED");
-                allCallsFinished = false;
-            }
-        }
         return allCallsFinished;
     }
 
-    private void executeNCCommand(CNCCommand cncProgramCommand) {
-        Callable<Boolean> callable = new CNCCommandExecutor(cncProgramCommand, canalDataModel, brakeRunningCode, animationModelOptional);
-        futures.add(executorService.submit(callable));
-    }
 
-    private void unbindAxis() {
-        canalDataModel.getCncAxes().values().forEach(x -> x.axisPositionProperty().unbind());
-    }
 
     private void goToNextLine() {
         if (programLinePosition.get() >= countOfProgramLines - 1) {
@@ -144,25 +191,13 @@ public class Canal implements Callable<Boolean> {
 
     public void stopRunning() throws InterruptedException {
         canalDataModel.setCanalRunState(false);
-        waitUntilCallsAreFinished();
-        if (!areAllCallsFinished()) {
-            stop();
-        }
-        unbindAxis();
-        programLinePosition.set(0);
     }
 
     public void stopNow() {
-        executorService.shutdownNow();
-        executorService = Executors.newSingleThreadExecutor();
     }
 
     public void stop() throws InterruptedException {
-        futures.forEach((future) -> future.cancel(false));
-        executorService.shutdown();
-        if (executorService.awaitTermination(1, TimeUnit.SECONDS)) {
-            executorService.shutdownNow();
-        }
+
     }
 
     public ObservableIntegerValue programLinePositionProperty() {
@@ -187,16 +222,31 @@ public class Canal implements Callable<Boolean> {
     }
 
     public boolean isCanalRunning() {
-        boolean allCallsFinished = false;
-        for (Future<Boolean> call : futures) {
-            if (!call.isDone()) {
-                allCallsFinished = true;
-            }
-        }
-        return allCallsFinished;
+        return canalRunningGCode.get();
     }
 
-    public void addAnimationModel(CNCAnimation animationModel) {
-        animationModelOptional = Optional.of(animationModel);
+    private void caculatePath(Position startPosition){
+        List<List<Map<AxisName, Double>>> programLinesPaths = new LinkedList<>();
+        for (String line : cncProgramText.getProgramText()) {
+            try {
+                List<Map<AxisName, Double>> positionList = new LinkedList<>();
+                CNCCommandGenerator cncCommandDecoder = new CNCCommandGenerator(canalDataModel,startPosition);
+                CNCCommand cncProgramCommand = cncCommandDecoder.splitCommands(line);
+                positionList.addAll(cncProgramCommand.getPath(canalDataModel));
+                startPosition = cncProgramCommand.getEndposition();
+                programLinesPaths.add(positionList);
+            }catch (Exception e){
+                logger.log(Level.WARNING,"Error"+e.getMessage());
+            }
+        }
+        this.ProgramLinesPaths= programLinesPaths;
+    }
+
+    public List<Vector> getLinesToDraw() {
+        return Collections.unmodifiableList(linesToDraw);
+    }
+
+    public IntegerProperty executionPosition() {
+        return executionGodeLinePosition;
     }
 }

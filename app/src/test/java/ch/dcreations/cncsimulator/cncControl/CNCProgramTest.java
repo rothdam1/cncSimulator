@@ -24,7 +24,7 @@ class CNCProgramTest {
     void getProgramText() {
         //1_1 Test getProgram is equal to set Program
         CNCProgram cncProgram = new CNCProgram(sampleProgram);
-        assertEquals(sampleProgram,cncProgram.getProgramText(),"CNCProgram Test -> 1_1 Test getProgram is equal to set Program");
+        assertEquals(sampleProgram,cncProgram.getProgramTextAsText(),"CNCProgram Test -> 1_1 Test getProgram is equal to set Program");
     }
 
     private final static String sampleProgram = "O0001;\nG1 X4.0;\nG4 Y4";

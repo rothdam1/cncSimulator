@@ -18,8 +18,8 @@ public class Config {
     public final static CNCProgram CANAL1_SAMPLE_PROGRAM = new CNCProgram("O0001;\nG98 G97;\nM3 S1000 F1.0;\nG1 G17 X2.0 F1000.0;\nG2 X40.0  R19.0;\nG2 X2.0 Z10.0 R19.0;\nG2 X40.0  R19.0;\nG2 X2.0 R19.0;");
     public final static CNCProgram CANAL2_SAMPLE_PROGRAM = new CNCProgram("O1001;\nG98 G97;\nM3 S1000 F1.0;\nG1 X2.0 Y4.8 Z9 F1000.0;\nG1 X15.0 Y4.0");
 
-    public final static double POSITION_CALCULATION_RESOLUTION = 0.1;
-    public final static int VIEW_ACTUALISATION = 50;
+    public final static double POSITION_CALCULATION_RESOLUTION = 0.4;
+    public final static int VIEW_ACTUALISATION_MULTIPLICATION = 2;
     public final static double CALCULATION_ERROR_MAX_FOR_CIRCLE_END_POINT = 0.5; // if G2 X Y I J ;
 
     public static String END_OF_PROGRAM_SYMBOLE = "%";

@@ -1,6 +1,7 @@
 package ch.dcreations.cncsimulator.gui;
 import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.animation.CNCAnimation;
+import ch.dcreations.cncsimulator.animation.Vector;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.CNCControl;
@@ -9,16 +10,23 @@ import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
+import javafx.scene.Group;
+import javafx.scene.PerspectiveCamera;
+import javafx.scene.SceneAntialiasing;
+import javafx.scene.SubScene;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +85,7 @@ public class ViewController {
     @FXML
     private TabPane cncAnimationView;
 
+
     private double xPos = 0;
     private double yPos = 0;
 
@@ -89,7 +98,8 @@ public class ViewController {
     public void initialize(Config config,CNCControl cncControl) {
         this.configuration = config;
         this.cncControl = cncControl;
-        cncControl.getCanalLinePositionAsObservables(0).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL1));
+        cncControl.getCanalLinePositionAsObservables(0).addListener((observable, oldValue, newValue) ->
+        {markLine(newValue.intValue(),CanalNames.CANAL1);});
         cncControl.getCanalLinePositionAsObservables(1).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL2));
         setViewCNCControl();
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL1).bind(textAreaCanal1.textProperty());
@@ -99,9 +109,9 @@ public class ViewController {
             public void publish(LogRecord logRecord) {
                 if (logRecord.getMessage().contains(":")) {
                     WarringTextView.setText(logRecord.getMessage().substring(logRecord.getMessage().indexOf(":",2)-1));
-                    WarringTextView.setText(logRecord.getMessage());
+                  //  WarringTextView.setText(logRecord.getMessage());
                 }else {
-                    WarringTextView.setText(logRecord.getMessage());
+                //    WarringTextView.setText(logRecord.getMessage());
                 }
             }
             @Override
@@ -112,12 +122,35 @@ public class ViewController {
         for (int i = 1; i<= cncControl.countOfCanals() ; i++) {
             Tab tab = new Tab();
             tab.setText("Canal " + i);
-            Pane pane = new Pane();
-            tab.setContent(pane);
+            Group animation3DObjects = new Group();
+            SubScene subScene3DView = new SubScene(animation3DObjects,100,100,true, SceneAntialiasing.DISABLED);
+            subScene3DView.widthProperty().bind(cncAnimationView.widthProperty());
+            subScene3DView.heightProperty().bind(cncAnimationView.heightProperty());
+            final PerspectiveCamera camera = new PerspectiveCamera();
+            camera.setNearClip(0.1);
+            camera.setFarClip(0.1);
+            camera.setTranslateZ(-100);
+            subScene3DView.setCamera(camera);
+            tab.setContent(subScene3DView);
             cncAnimationView.getTabs().add(tab);
-            animationModelList.add(new AnimationModel(pane));
+            AnimationModel animationModel = new AnimationModel(animation3DObjects);
+            animationModelList.add(animationModel);
+            try {
+            cncControl.getDrawingintPosFromCanal(i-1).addListener(new ChangeListener<Number>() {
+                @Override
+                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+                    List<Vector> vectorList = cncControl.getDrawingListFromCanal(0);
+                    for (int j = oldValue.intValue();j<newValue.intValue()-1&& j<vectorList.size();j++){
+
+                        Vector v = vectorList.get(j);
+                        Platform.runLater(()->animationModel.createNewLine(v));
+                    }
+                }
+            });}
+            catch (Exception e){
+                System.out.println(e.getMessage());
+            }
         }
-        cncControl.setAnimationView(animationModelList);
     }
 
     public void initializeAnimation() {
@@ -171,10 +204,19 @@ public class ViewController {
     }
 
     @FXML
+    private void Plot() {
+        cncControl.getDrawingListFromCanal(0).forEach((x)-> animationModelList.get(0).createNewLine(x));
+        cncControl.getDrawingListFromCanal(1).forEach((x)-> animationModelList.get(1).createNewLine(x));
+    }
+
+
+    @FXML
     private void centerView() {
         CNCAnimation selectedAnimationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
         selectedAnimationModel.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
-        selectedAnimationModel.resetView();
+        double middleWidthOfScene = cncAnimationView.getWidth() / 4;
+        double middleHighOfScene = cncAnimationView.getHeight() / 4;
+        selectedAnimationModel.resetView(middleWidthOfScene,middleHighOfScene);
     }
 
     private double getMouseX(MouseEvent event) {
@@ -190,8 +232,8 @@ public class ViewController {
     public void loadSampleProgram() {
         resetCNCButtonClicked();
         try {
-            textAreaCanal1.setText(configuration.CANAL1_SAMPLE_PROGRAM.getProgramText());
-            textAreaCanal2.setText(configuration.CANAL2_SAMPLE_PROGRAM.getProgramText());
+            textAreaCanal1.setText(configuration.CANAL1_SAMPLE_PROGRAM.getProgramTextAsText());
+            textAreaCanal2.setText(configuration.CANAL2_SAMPLE_PROGRAM.getProgramTextAsText());
         }catch (Exception e){
             logger.log(Level.WARNING,e.getMessage());
         }
@@ -217,8 +259,9 @@ public class ViewController {
             resetCNCControl();
             setCNCProgramToControl();
             cncControl.runCNCProgram();
+            runCNCButton.setSelected(false);
         }catch (Exception e){
-            logger.log(Level.WARNING,e.getMessage());
+            logger.log(Level.WARNING,"Error when Run button Clicked "+ e.getMessage());
         }finally {
             switchEditorMode(EditorMode.RUN);
         }
@@ -275,7 +318,10 @@ public class ViewController {
     }
 
     private void deleteDrawnAnimations(){
-        animationModelList.forEach(x -> {x.deleteAll();x.resetView();});
+        animationModelList.forEach(x -> {x.deleteAll();
+            double middleWidthOfScene = cncAnimationView.getWidth() / 4;
+            double middleHighOfScene = cncAnimationView.getHeight() / 4;
+            x.resetView(middleWidthOfScene,middleHighOfScene);});
     }
 
 

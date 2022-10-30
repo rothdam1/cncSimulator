@@ -2,14 +2,20 @@ package ch.dcreations.cncsimulator.cncControl;
 
 import ch.dcreations.cncsimulator.animation.AnimationModel;
 import ch.dcreations.cncsimulator.animation.CNCAnimation;
+import ch.dcreations.cncsimulator.animation.Vector;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalState;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
+import javafx.beans.Observable;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ListProperty;
 import javafx.beans.value.ObservableIntegerValue;
+import javafx.collections.ObservableList;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -188,12 +194,7 @@ public class CNCControl {
         canals.forEach(Canal::breakRunningCode);
     }
 
-    public void setAnimationView(List<CNCAnimation> cncAnimationView) {
-        for (int i = 0; i < canals.size(); i++) {
-            canals.get(i).addAnimationModel(cncAnimationView.get(i));
-        }
 
-    }
 
     public void resetAxis() {
         for (Canal canal : canals) {
@@ -206,4 +207,13 @@ public class CNCControl {
     public int countOfCanals() {
         return canals.size();
     }
+
+    public List<Vector> getDrawingListFromCanal(int i){
+        return canals.get(i).getLinesToDraw();
+    }
+
+    public IntegerProperty getDrawingintPosFromCanal(int i){
+        return canals.get(i).executionPosition();
+    }
+
 }

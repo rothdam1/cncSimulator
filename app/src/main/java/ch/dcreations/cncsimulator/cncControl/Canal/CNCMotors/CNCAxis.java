@@ -30,8 +30,12 @@ public class CNCAxis {
         return axisPosition;
     }
 
+    public void setValue(double v) {
+        Platform.runLater(() -> axisPosition.set(v));
+    }
+
     public void resetPosition() {
-        Platform.runLater(() -> axisPosition.set(0));
+
         ;
     }
 }

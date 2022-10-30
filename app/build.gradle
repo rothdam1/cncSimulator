@@ -26,6 +26,7 @@ dependencies {
 
     // Mockito dependencies
     testImplementation 'org.mockito:mockito-core:4.3.+'
+    implementation 'org.fxyz3d:fxyz3d:0.5.4'
 
 
 }

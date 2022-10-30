@@ -17,7 +17,7 @@ public interface CNCAnimation {
     public void rotateZAxis(double degree);
 
 
-    public void resetView() ;
+    public void resetView(double with,double height) ;
 
     public void createNewLine(Vector vector);
 

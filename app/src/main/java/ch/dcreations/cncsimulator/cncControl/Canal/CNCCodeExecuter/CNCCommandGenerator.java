@@ -35,10 +35,12 @@ import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption
 public class CNCCommandGenerator {
 
     CanalDataModel canalDataModel;
+    Position startPosition;
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
-    public CNCCommandGenerator(CanalDataModel canalDataModel) {
+    public CNCCommandGenerator(CanalDataModel canalDataModel,Position startPosition) {
         this.canalDataModel = canalDataModel;;
+        this.startPosition = startPosition;
     }
 
     public CNCCommand splitCommands(String line) throws Exception {
@@ -46,13 +48,13 @@ public class CNCCommandGenerator {
         List<GCode> gCodes = new LinkedList<>();
         Map<AxisName, Double> axisDistance = new HashMap<>();
         try {
-            return generateCNCCode(codeWords, gCodes, axisDistance);
+            return generateCNCCode(codeWords, gCodes, axisDistance,startPosition);
         } catch (Exception e) {
             throw new CodeDoesNotExistException("GENERATION CODE WAS NOT SUCCESS" + e.getMessage());
         }
     }
 
-    private CNCCommand generateCNCCode(String[] codeWords, List<GCode> gCodes, Map<AxisName, Double> axisDistance) throws Exception {
+    private CNCCommand generateCNCCode(String[] codeWords, List<GCode> gCodes, Map<AxisName, Double> axisDistance, Position startPosition) throws Exception {
         MCodes mCode = null;
         Map<Character, Double> additionalParameterMap = new HashMap<>();
         for (String code : codeWords) {
@@ -71,19 +73,18 @@ public class CNCCommandGenerator {
             if (code.length() > 0) {
                 Character codeCommand = checkAndGetCodeWord(code);
                 switch (codeCommand) {
-                    case 'G' -> gCodes.add(decodeGCode(Math.round(getCodeValue(code)), axisDistance,additionalParameterMap));
+                    case 'G' -> gCodes.add(decodeGCode(Math.round(getCodeValue(code)), axisDistance,additionalParameterMap,startPosition));
                     case 'M' -> mCode = new MCodes(getCodeValue(code) + "");
                 }
             }
         }
-        return new CNCCommand(gCodes, mCode, axisDistance, additionalParameterMap);
+        return new CNCCommand(gCodes, mCode, axisDistance, additionalParameterMap,startPosition);
     }
 
     //Decodes the G value to the Correct G Code G01 -> G999
-    private GCode decodeGCode(long codeNumber, Map<AxisName, Double> axisDistance,Map<Character, Double> additionalParameterMap) throws Exception {
+    private GCode decodeGCode(long codeNumber, Map<AxisName, Double> axisDistance,Map<Character, Double> additionalParameterMap,Position startPosition) throws Exception {
         GCode gCode = new PlainGCode(9999, canalDataModel.getFeedOptions(), canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(),canalDataModel.currentFeedRateProperty());
         Map<AxisName, Double> parameters = setupGCodeParameters(axisDistance);
-        Position startPosition = new Position(canalDataModel.getCncAxes().get(AxisName.X).getAxisPosition(), canalDataModel.getCncAxes().get(AxisName.Y).getAxisPosition(), canalDataModel.getCncAxes().get(AxisName.Z).getAxisPosition(), 0, 0, 0);
         switch (Math.toIntExact(codeNumber)) {
             case 1 -> gCode = new G01(codeNumber, canalDataModel.getFeedOptions(), canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(), startPosition, canalDataModel.currentFeedRateProperty(), parameters);
             case 2,3 -> gCode = new G02_03(codeNumber,canalDataModel.getFeedOptions(),canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(), startPosition, canalDataModel.currentFeedRateProperty(), parameters,additionalParameterMap,canalDataModel.getPlane(),canalDataModel.getCalculationErrorMaxInCircle());

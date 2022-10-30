@@ -1,9 +1,4 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
-
-
-import ch.dcreations.cncsimulator.animation.AnimationModel;
-import ch.dcreations.cncsimulator.animation.CNCAnimation;
-import ch.dcreations.cncsimulator.animation.Vector;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.IllegalFormatOfGCodeException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
@@ -13,7 +8,6 @@ import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.ExeptionMessages;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
-import javafx.scene.paint.Color;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,7 +30,6 @@ public class GCodeMove extends GCode {
     protected Position endPosition;
 
     double distance = 0;
-    protected Optional<CNCAnimation> animationModelOptional = Optional.empty();
 
 
     protected double lineStartX = 0;
@@ -95,19 +88,6 @@ public class GCodeMove extends GCode {
         return axisPosition;
     }
 
-    public void setAnimationModel(Optional<CNCAnimation> animationModelOptional) {
-        this.animationModelOptional = animationModelOptional;
-    }
-
-    protected void setPositionAndDrawAnimation(double currentPosX, double currentPosY, double currentPosZ) {
-        if (animationModelOptional.isPresent()) {
-            animationModelOptional.get().createNewLine(new Vector(Color.BLACK, lineStartX, lineStartY, lineStartZ, currentPosX, currentPosY, currentPosZ));
-            lineStartX = currentPosX;
-            lineStartY = currentPosY;
-            lineStartZ = currentPosZ;
-        }
-    }
-
 
     public void execute(AtomicBoolean run, AtomicBoolean brakeRunningCode) throws Exception {
         finished.set(false);
@@ -119,7 +99,7 @@ public class GCodeMove extends GCode {
                     (60 * ((distance / feed.get()) / spindleSpeed.get()) * 1000) : ((60 * (distance / feed.get())) * 1000);
             List<Map<AxisName, Double>> toolPath = getPath(Config.POSITION_CALCULATION_RESOLUTION);
             List<Map<AxisName, Double>> drawPath = getPath(Config.POSITION_CALCULATION_RESOLUTION);
-            double countOfCalculations = Math.ceil(timeMS / Config.VIEW_ACTUALISATION);
+            double countOfCalculations = Math.ceil(timeMS / Config.VIEW_ACTUALISATION_MULTIPLICATION);
             for (int i = 0; i < countOfCalculations && run.get() && !finished.get(); ) {
                 if (!brakeRunningCode.get()) {
                     int position = (int) Math.round(i * (toolPath.size() / countOfCalculations));
@@ -128,21 +108,17 @@ public class GCodeMove extends GCode {
                         i++;
                         for (int j = toolPath.size() - drawPath.size(); j < position; j++) {
                             if (drawPath.size() > 0) {
-                                setPositionAndDrawAnimation(drawPath.get(0).get(AxisName.X), drawPath.get(0).get(AxisName.Y), drawPath.get(0).get(AxisName.Z));
-                                drawPath.remove(0);
-                            }
-                            if (animationModelOptional.isPresent()) {
-                                animationModelOptional.get().update();
+                                   drawPath.remove(0);
                             }
                         }
                     }
                 }else {
                     if (!finished.get()) {
-                        Thread.sleep(Config.VIEW_ACTUALISATION);
+                        Thread.sleep(Config.VIEW_ACTUALISATION_MULTIPLICATION);
                     }
                 }
                 if (!finished.get()) {
-                    Thread.sleep(Config.VIEW_ACTUALISATION);
+                    Thread.sleep(Config.VIEW_ACTUALISATION_MULTIPLICATION);
                 }
 
 
@@ -155,13 +131,11 @@ public class GCodeMove extends GCode {
                 moveAxisToPathPosition(posistionMap);
                 int i = 0;
                 while (i < 10 || axisPosition.getX() != endPosition.getX() || axisPosition.getZ() != endPosition.getZ() || axisPosition.getY() != endPosition.getY()) {
-                    Thread.sleep(Config.VIEW_ACTUALISATION);
+                    Thread.sleep(Config.VIEW_ACTUALISATION_MULTIPLICATION);
                     i++;
                 }
             }
         }
-
-        System.out.println("Execution Finish");
         finished.set(true);
     }
 

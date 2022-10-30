@@ -197,7 +197,7 @@ public class G02_03 extends GCodeMove {
         }
     }
 
-    protected Map<AxisName, Double> calculatePosition(int timesRuns, int resolution) throws Exception {
+    public Map<AxisName, Double> calculatePosition(int timesRuns, int resolution) throws Exception {
         Map<AxisName, Double> posistionMap = new HashMap<>();
         double currentPosX = 0;
         double currentPosY = 0;
