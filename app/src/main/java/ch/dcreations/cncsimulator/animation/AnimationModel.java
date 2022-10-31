@@ -105,6 +105,8 @@ public class AnimationModel implements CNCAnimation {
         scale.setX(1);
         scale.setY(1);
         scale.setZ(1);
+        deleteAll();
+        createCoordinateSystem();
     }
 
     public void createNewLine(Vector vector){
@@ -123,13 +125,14 @@ public class AnimationModel implements CNCAnimation {
 
 
     public void moveYAxis(double distance) {
-        translate.setY(translate.getY() + (distance / 2));
+        zTranslation.setY(zTranslation.getY() + (-distance / 3));
     }
 
     public void moveXAxis(double distance) {
-        translate.setX(translate.getX() + (distance / 2));
+        zTranslation.setX(zTranslation.getX() + (-distance / 3));
     }
 
     public void deleteAll() {
+        groupOf3DObjects.getChildren().clear();
     }
 }
