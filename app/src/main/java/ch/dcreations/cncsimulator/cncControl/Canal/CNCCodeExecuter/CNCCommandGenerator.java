@@ -44,7 +44,7 @@ public class CNCCommandGenerator {
     }
 
     public CNCCommand splitCommands(String line) throws Exception {
-        String[] codeWords = line.replace(" ", "").split("(?=[A-Z,%])");
+        String[] codeWords = line.replaceAll(" ", "").replaceAll(";","").split("(?=[A-Z,%])");
         List<GCode> gCodes = new LinkedList<>();
         Map<AxisName, Double> axisDistance = new HashMap<>();
         try {
@@ -58,7 +58,7 @@ public class CNCCommandGenerator {
         MCodes mCode = null;
         Map<Character, Double> additionalParameterMap = new HashMap<>();
         for (String code : codeWords) {
-            if (code.length() > 0) {
+            if (code.length() > 1) {
                 Character codeCommand = checkAndGetCodeWord(code);
                 switch (codeCommand) {
                     case '%','M','G' -> {}
@@ -70,7 +70,7 @@ public class CNCCommandGenerator {
             }
         }
         for (String code : codeWords) {
-            if (code.length() > 0) {
+            if (code.length() > 1) {
                 Character codeCommand = checkAndGetCodeWord(code);
                 switch (codeCommand) {
                     case 'G' -> gCodes.add(decodeGCode(Math.round(getCodeValue(code)), axisDistance,additionalParameterMap,startPosition));

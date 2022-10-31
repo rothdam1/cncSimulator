@@ -8,7 +8,6 @@ import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.ExeptionMessages;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ObservableIntegerValue;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -90,6 +89,7 @@ public class GCodeMove extends GCode {
 
 
     public void execute(AtomicBoolean run, AtomicBoolean brakeRunningCode) throws Exception {
+        /*
         finished.set(false);
         if (feed.get() == 0) throw new Exception("Feed rate us 0");
         if (distance == 0) {
@@ -137,6 +137,7 @@ public class GCodeMove extends GCode {
             }
         }
         finished.set(true);
+        */
     }
 
     private void moveAxisToPathPosition(Map<AxisName, Double> position) {
@@ -181,5 +182,4 @@ public class GCodeMove extends GCode {
         posistionMap.put(AxisName.Z, endPosition.getZ());
         return posistionMap;
     }
-
 }

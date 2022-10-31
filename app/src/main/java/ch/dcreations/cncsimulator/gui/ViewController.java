@@ -13,7 +13,10 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Point3D;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.SceneAntialiasing;
@@ -24,6 +27,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.*;
+import javafx.scene.transform.Rotate;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Collections;
@@ -85,9 +90,13 @@ public class ViewController {
     @FXML
     private TabPane cncAnimationView;
 
+    @FXML
+     private ChoiceBox<Double> scale3DObject;
 
     private double xPos = 0;
     private double yPos = 0;
+
+
 
     private final List<CNCAnimation> animationModelList = new LinkedList<>();
     @FXML
@@ -102,6 +111,12 @@ public class ViewController {
         {markLine(newValue.intValue(),CanalNames.CANAL1);});
         cncControl.getCanalLinePositionAsObservables(1).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL2));
         setViewCNCControl();
+        scale3DObject.getItems().add(0.5);
+        scale3DObject.getItems().add(1.0);
+        scale3DObject.getItems().add(1.5);
+        scale3DObject.getItems().add(2.0);
+        scale3DObject.getItems().add(2.5);
+        scale3DObject.getSelectionModel().select(1);
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL1).bind(textAreaCanal1.textProperty());
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL2).bind(textAreaCanal2.textProperty());
         logger.addHandler(new Handler() {
@@ -126,39 +141,32 @@ public class ViewController {
             SubScene subScene3DView = new SubScene(animation3DObjects,100,100,true, SceneAntialiasing.DISABLED);
             subScene3DView.widthProperty().bind(cncAnimationView.widthProperty());
             subScene3DView.heightProperty().bind(cncAnimationView.heightProperty());
-            final PerspectiveCamera camera = new PerspectiveCamera();
-            camera.setNearClip(0.1);
-            camera.setFarClip(0.1);
-            camera.setTranslateZ(-100);
+            final PerspectiveCamera camera = new PerspectiveCamera(true);
             subScene3DView.setCamera(camera);
             tab.setContent(subScene3DView);
             cncAnimationView.getTabs().add(tab);
-            AnimationModel animationModel = new AnimationModel(animation3DObjects);
+            AnimationModel animationModel = new AnimationModel(animation3DObjects,camera);
             animationModelList.add(animationModel);
-            try {
-            cncControl.getDrawingintPosFromCanal(i-1).addListener(new ChangeListener<Number>() {
-                @Override
-                public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-                    List<Vector> vectorList = cncControl.getDrawingListFromCanal(0);
-                    for (int j = oldValue.intValue();j<newValue.intValue()-1&& j<vectorList.size();j++){
-
-                        Vector v = vectorList.get(j);
-                        Platform.runLater(()->animationModel.createNewLine(v));
-                    }
-                }
-            });}
-            catch (Exception e){
-                System.out.println(e.getMessage());
-            }
         }
+        scale3DObject.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> animationModelList.forEach((x)-> x.scale(scale3DObject.getValue())));
+        initializeAnimation();
     }
 
-    public void initializeAnimation() {
-        animationModelList.forEach((x) -> {
-            x.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
-            x.update();
+    private void initializeAnimation() {
+        cncControl.getDrawingintPosFromCanal(0).addListener((observable, oldValue, newValue) -> {
+            List<Vector> vectorList = cncControl.getDrawingListFromCanal(0);
+            for (int j = oldValue.intValue();j<newValue.intValue()-1&& j<vectorList.size();j++){
+                Vector v = vectorList.get(j);
+                Platform.runLater(()->animationModelList.get(0).createNewLine(v));
+            }
         });
-
+        cncControl.getDrawingintPosFromCanal(1).addListener((observable, oldValue, newValue) -> {
+            List<Vector> vectorList = cncControl.getDrawingListFromCanal(1);
+            for (int j = oldValue.intValue();j<newValue.intValue()-1&& j<vectorList.size();j++){
+                Vector v = vectorList.get(j);
+                Platform.runLater(()->animationModelList.get(1).createNewLine(v));
+            }
+        });
     }
 
 
@@ -210,10 +218,10 @@ public class ViewController {
     }
 
 
+
     @FXML
     private void centerView() {
         CNCAnimation selectedAnimationModel = animationModelList.get(cncAnimationView.getSelectionModel().getSelectedIndex());
-        selectedAnimationModel.setOffset(cncAnimationView.getWidth()/2,cncAnimationView.getHeight()/2,0);
         double middleWidthOfScene = cncAnimationView.getWidth() / 4;
         double middleHighOfScene = cncAnimationView.getHeight() / 4;
         selectedAnimationModel.resetView(middleWidthOfScene,middleHighOfScene);

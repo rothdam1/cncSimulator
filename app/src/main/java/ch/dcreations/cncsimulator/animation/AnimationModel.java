@@ -4,58 +4,82 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point3D;
+import javafx.scene.Camera;
 import javafx.scene.Group;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.Box;
+import javafx.scene.shape.Cylinder;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Shape3D;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 
+import java.sql.ResultSet;
 import java.util.LinkedList;
 import java.util.List;
 
 public class AnimationModel implements CNCAnimation {
 
-    Rotate rotateX = new Rotate();
-    Rotate rotateY = new Rotate();
+    private final Rotate rotateX = new Rotate(0,Rotate.X_AXIS);
+    private final Rotate rotateY = new Rotate(0,Rotate.Y_AXIS);
 
+    private final Camera camera;
+    private final Scale scale = new Scale();
+    private final Translate translate = new Translate();
 
-    private Scale scale = new Scale();
-    Translate translate = new Translate();
+    private final Translate zTranslation = new Translate(0,0,-100);
 
     private Group groupOf3DObjects ;
 
-    public AnimationModel(Group groupOf3DObjects) {
-        rotateX.setAxis(new Point3D(1, 0, 0));
-        rotateY.setAxis(new Point3D(0, 1, 0));
-        rotateY.setAngle(0);
-        rotateX.setAngle(0);
+    public AnimationModel(Group groupOf3DObjects, Camera camera) {
+        this.camera = camera;
+        setupCamera();
         this.groupOf3DObjects = groupOf3DObjects;
-        createCoordinateSystem();
-        update();
-    }
-
-    private void createCoordinateSystem()  {
-        List<Line3D> lines = new LinkedList<>();
-        lines.add(new Line3D(0,0,0,10,0,0,Color.GRAY));
-        lines.add(new Line3D(0,0,0,0,10,0,Color.BLACK));
-        lines.add(new Line3D(0,0,0,0,0,10,Color.RED));
-        for(Line3D line : lines) {
-            line.get3DObject().getTransforms().add(scale);
-            line.get3DObject().getTransforms().add(translate);
-            line.get3DObject().getTransforms().add(rotateY);
-            line.get3DObject().getTransforms().add(rotateX);
-            groupOf3DObjects.getChildren().add(line.get3DObject());
+        try {
+            createCoordinateSystem();
+        }
+        catch (Exception e){
+            System.out.println(e.getMessage());
         }
     }
 
-    public void setOffset(double x, double y ,double z){
+    private void setupCamera() {
+        camera.setNearClip(0.01);
+        camera.setFarClip(0.01);
+        camera.getTransforms().add(rotateX);
+        camera.getTransforms().add(rotateY);
+        camera.getTransforms().add(zTranslation);
     }
 
-    @Override
-    public void update() {
+    private void createCoordinateSystem()  {
+        List<Shape3D> lines = new LinkedList<>();
+        Box boxX = new Box(20,1,1) ;
+        Box boxY = new Box(1,20,1) ;
+        Box boxZ = new Box(1,1,20) ;
+        boxX.setTranslateX(10);
+        boxY.setTranslateY(10);
+        boxZ.setTranslateZ(10);
+        boxX.setMaterial(new PhongMaterial(Color.RED));
+        boxY.setMaterial(new PhongMaterial(Color.GREEN));
+        boxZ.setMaterial(new PhongMaterial(Color.BLUE));
+        lines.add(boxX);
+        lines.add(boxY);
+        lines.add(boxZ);
+        for(Shape3D line : lines) {
+            groupOf3DObjects.getChildren().add(line);
+        }
+    }
 
+
+
+    @Override
+    public void scale(double i) {
+        scale.setX(i);
+        scale.setY(i);
+        scale.setZ(i);
     }
 
 
@@ -78,43 +102,23 @@ public class AnimationModel implements CNCAnimation {
     public void resetView(double middleWidthOfScene,double middleHighOfScene) {
         rotateX.setAngle(0);
         rotateY.setAngle(0);
-        scale.setX(2);
-        scale.setY(2);
-        scale.setZ(2);
-        translate.setX(middleWidthOfScene);
-        translate.setY(middleHighOfScene);
+        scale.setX(1);
+        scale.setY(1);
+        scale.setZ(1);
     }
 
     public void createNewLine(Vector vector){
-        try {
             Line3D line = new Line3D(vector.getStartX(), vector.getStartY(), vector.getStartZ(), vector.getEndX(), vector.getEndY(), vector.getEndZ(), vector.getColor());
             line.get3DObject().getTransforms().add(scale);
-            line.get3DObject().getTransforms().add(translate);
-            line.get3DObject().getTransforms().add(rotateY);
-            line.get3DObject().getTransforms().add(rotateX);
-
             groupOf3DObjects.getChildren().add(line.get3DObject());
-        }catch (Exception e){
-            System.out.println("ERROR " + e);
-        }
     }
 
     public void zoomPlus() {
-        scale.setX(scale.getX() * 1.5);
-        scale.setY(scale.getY() * 1.5);
-        scale.setZ(scale.getZ() * 1.5);
-        translate.setX(translate.getX() * 0.5);
-        translate.setY(translate.getY() * 0.5);
-        translate.setZ(translate.getZ() * 0.5);
+        zTranslation.setZ(zTranslation.getZ()+50);
     }
 
     public void zoomMinus() {
-        scale.setX(scale.getX() * 0.75);
-        scale.setY(scale.getY() * 0.75);
-        scale.setZ(scale.getZ() * 0.75);
-        translate.setX(translate.getX() * 1.5);
-        translate.setY(translate.getY() * 1.5);
-        translate.setZ(translate.getZ() * 1.5);
+        zTranslation.setZ(zTranslation.getZ()-50);
     }
 
 

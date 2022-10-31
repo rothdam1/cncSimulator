@@ -4,10 +4,11 @@ package ch.dcreations.cncsimulator.animation;
 public interface CNCAnimation {
 
 
-    public void setOffset(double x, double y ,double z);
-
-
-    public void update();
+    /**
+     *  ObjectSize
+     * @param i multiplicator
+     */
+    public void scale(double i);
 
 
     public void rotateXAxis(double degree);
