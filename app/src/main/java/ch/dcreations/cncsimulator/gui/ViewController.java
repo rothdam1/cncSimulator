@@ -316,8 +316,8 @@ public class ViewController {
 
     private void resetCNCControl(){
         try {
-            resetNCBreakSwitch();
             cncControl.stopAndResetCNCControl();
+            resetNCBreakSwitch();
             deleteDrawnAnimations();
             cncControl.resetAxis();
         }catch (Exception e){

@@ -10,13 +10,8 @@ import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.value.ObservableIntegerValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
-
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,9 +33,7 @@ import static ch.dcreations.cncsimulator.config.Config.VIEW_ACTUALISATION_MULTIP
 public class Canal implements Callable<Boolean> {
 
     private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
-    //private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    private final List<Future<Boolean>> futures = new LinkedList<>();
     private CanalDataModel canalDataModel;
     private int countOfProgramLines = 0;
     private CNCProgram cncProgramText = new CNCProgram("");
@@ -53,13 +46,14 @@ public class Canal implements Callable<Boolean> {
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
 
     private final SimpleIntegerProperty executionGodeLinePosition = new SimpleIntegerProperty(0);
-    private List<Vector> linesToDraw = new LinkedList<>();
-    private List<List<Map<AxisName, Double>>> ProgramLinesPaths = new LinkedList<>();
+    private  List<Vector> linesToDraw = new LinkedList<>();
+    private  List<List<Map<AxisName, Double>>> ProgramLinesPaths = new LinkedList<>();
 
 
     public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles ) {
         super();
-
+        programLinePosition.set(0);
+        caculatePath(startPosition);
         try {
             canalDataModel = new CanalDataModel(cncAxes, cncSpindles, Plane.G18, Config.CALCULATION_ERROR_MAX_FOR_CIRCLE_END_POINT);
             canalDataModel.setCurrentSelectedSpindle(SpindelNames.S1);
@@ -70,19 +64,17 @@ public class Canal implements Callable<Boolean> {
 
     @Override
     public Boolean call() {
-        try {
-            if (cncProgramText != null) {
 
+            if (cncProgramText != null) {
                 countOfProgramLines = cncProgramText.countOfLines();
                 canalDataModel.setCanalRunState(true);
+
+                caculatePath(startPosition);
                 switch (canalDataModel.getCanalState()) {
                     case SINGLE_STEP -> runNextLine();
                     case RUN -> runAllLines();
                 }
             }
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "NC RUN Exception" + e);
-        }
         return true;
     }
 
@@ -101,7 +93,7 @@ public class Canal implements Callable<Boolean> {
     }
 
 
-    private void runAllLines() throws Exception {
+    private void runAllLines()  {
         programLinePosition.set(0);
         caculatePath(startPosition);
             while (programLinePosition.get() <= countOfProgramLines - 2) {
@@ -110,7 +102,7 @@ public class Canal implements Callable<Boolean> {
     }
 
 
-    private void runNextLine() throws Exception {
+    private void runNextLine()  {
         runProgramCode(programLinePosition.get());
         goToNextLine();
     }
@@ -131,7 +123,6 @@ public class Canal implements Callable<Boolean> {
         try {
             while (i < ProgramLinesPaths.get(lineNumber).size()&& getCanalRunState()) {
                 long milisec = (long) (Config.POSITION_CALCULATION_RESOLUTION * 100);
-                Thread.sleep(VIEW_ACTUALISATION_MULTIPLICATION * milisec);
                 x = ProgramLinesPaths.get(lineNumber).get(i).get(AxisName.X);
                 y = ProgramLinesPaths.get(lineNumber).get(i).get(AxisName.Y);
                 z = ProgramLinesPaths.get(lineNumber).get(i).get(AxisName.Z);
@@ -143,9 +134,10 @@ public class Canal implements Callable<Boolean> {
                     executionGodeLinePosition.set(executionGodeLinePosition.get() + i - j);
                 j = i;
                 i = i + VIEW_ACTUALISATION_MULTIPLICATION;
+                }
+                Thread.sleep(VIEW_ACTUALISATION_MULTIPLICATION * milisec);
             }
-            }
-            if (ProgramLinesPaths.get(lineNumber).size()>1) {
+            if (ProgramLinesPaths.get(lineNumber).size()>1 && getCanalRunState()) {
                 x = ProgramLinesPaths.get(lineNumber).get(ProgramLinesPaths.get(lineNumber).size() - 1).get(AxisName.X);
                 y = ProgramLinesPaths.get(lineNumber).get(ProgramLinesPaths.get(lineNumber).size() - 1).get(AxisName.Y);
                 z = ProgramLinesPaths.get(lineNumber).get(ProgramLinesPaths.get(lineNumber).size() - 1).get(AxisName.Z);
@@ -154,25 +146,10 @@ public class Canal implements Callable<Boolean> {
                 canalDataModel.getCncAxes().get(AxisName.Z).setValue(z);
             }
         }catch (Exception e){
-            logger.log(Level.WARNING,"caculate PATH"+e.getMessage());
+            logger.log(Level.WARNING,"caculate PATH Error"+e.getMessage());
         }finally {
             canalRunningGCode.set(false);
         }
-    }
-
-    private void waitUntilCallsAreFinished() {
-        futures.forEach((x) -> {
-            try {
-                x.get(5000, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                x.cancel(false);
-            }
-        });
-    }
-
-    private boolean areAllCallsFinished() {
-        boolean allCallsFinished = true;
-        return allCallsFinished;
     }
 
 
@@ -189,15 +166,22 @@ public class Canal implements Callable<Boolean> {
         canalDataModel.setCanalState(canalState);
     }
 
-    public void stopRunning() throws InterruptedException {
+    public void stopRunning() {
         canalDataModel.setCanalRunState(false);
     }
 
-    public void stopNow() {
-    }
+    public void stopAndReset()  {
+        stopRunning();
+        try {
+            Thread.sleep(100);
+        }catch (Exception e){
+            logger.log(Level.WARNING,"THREAD wait for Stop failed");
 
-    public void stop() throws InterruptedException {
-
+        }
+        getCncAxes().values().forEach((x) -> x.setValue(0));
+        executionGodeLinePosition.set(0);
+        linesToDraw.clear();
+        ProgramLinesPaths.clear();
     }
 
     public ObservableIntegerValue programLinePositionProperty() {

@@ -1,21 +1,15 @@
 package ch.dcreations.cncsimulator.cncControl;
 
-import ch.dcreations.cncsimulator.animation.AnimationModel;
-import ch.dcreations.cncsimulator.animation.CNCAnimation;
 import ch.dcreations.cncsimulator.animation.Vector;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.CNCAxis;
 import ch.dcreations.cncsimulator.cncControl.Canal.Canal;
 import ch.dcreations.cncsimulator.cncControl.Canal.CanalState;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
-import javafx.beans.Observable;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ListProperty;
 import javafx.beans.value.ObservableIntegerValue;
-import javafx.collections.ObservableList;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -88,16 +82,11 @@ public class CNCControl {
     }
 
     public void stopAndResetCNCControl() {
-        try {
             for (Canal canal : canals) {
-                canal.stopRunning();
+                canal.stopAndReset();
             }
-            waitUntilAllCanalsFinished();
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "WHILE RESET THE CONTROL " + e.getMessage());
-        } finally {
             this.cncRunState = CNCState.STOP;
-        }
+
     }
 
     public void runCNCProgram() throws Exception {
@@ -131,14 +120,7 @@ public class CNCControl {
 
 
     public void terminateCNCControl() throws InterruptedException {
-        for (Canal canal : canals) {
-            try {
-                canal.stop();
-            } catch (Exception e) {
-                logger.log(Level.WARNING, "CANAL DOES NOT TERMINATE RIGHT");
-                canal.stopNow();
-            }
-        }
+        canals.forEach((x)-> x.stopAndReset());
         CNCCanalExecutorService.shutdown();
         if (!CNCCanalExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
             CNCCanalExecutorService.shutdownNow();
