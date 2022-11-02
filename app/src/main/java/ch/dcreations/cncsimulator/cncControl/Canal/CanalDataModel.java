@@ -3,17 +3,13 @@ package ch.dcreations.cncsimulator.cncControl.Canal;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.*;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
-import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.SimpleDoubleProperty;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Logger;
 
 public class CanalDataModel {
 
     private CNCSpindle currentSelectedSpindle;
-
-    private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     private final Map<AxisName, CNCAxis> cncAxes;
     private final SimpleDoubleProperty currentFeedRate = new SimpleDoubleProperty(0);
     private FeedOptions feedOptions = FeedOptions.FEED_PER_REVOLUTION;
@@ -24,10 +20,10 @@ public class CanalDataModel {
 
     private final double calculationErrorMaxInCircle;
 
-    public CanalDataModel(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles, Plane plane, double caclulationErroMaxInCircle) {
+    public CanalDataModel(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles, Plane plane, double calculationErrorMaxInCircle) {
         this.cncAxes = cncAxes;
         this.cncSpindles = cncSpindles;
-        this.calculationErrorMaxInCircle = caclulationErroMaxInCircle;
+        this.calculationErrorMaxInCircle = calculationErrorMaxInCircle;
         setPlane(plane);
     }
 

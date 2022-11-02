@@ -124,9 +124,8 @@ public class ViewController {
             public void publish(LogRecord logRecord) {
                 if (logRecord.getMessage().contains(":")) {
                     WarringTextView.setText(logRecord.getMessage().substring(logRecord.getMessage().indexOf(":",2)-1));
-                  //  WarringTextView.setText(logRecord.getMessage());
                 }else {
-                //    WarringTextView.setText(logRecord.getMessage());
+                    WarringTextView.setText(logRecord.getMessage());
                 }
             }
             @Override
@@ -318,6 +317,7 @@ public class ViewController {
         try {
             cncControl.stopAndResetCNCControl();
             resetNCBreakSwitch();
+            deleteDrawnAnimations();
             deleteDrawnAnimations();
             cncControl.resetAxis();
         }catch (Exception e){

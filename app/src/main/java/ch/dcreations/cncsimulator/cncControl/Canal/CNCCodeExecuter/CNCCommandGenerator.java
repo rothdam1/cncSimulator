@@ -13,11 +13,8 @@ import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.G02_03;
 import ch.dcreations.cncsimulator.cncControl.PLC.MCodes;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
-import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.DoubleProperty;
-
 import java.util.*;
-import java.util.logging.Logger;
 import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption.CONSTANT_ROTATION;
 import static ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption.CONSTANT_SURFACE_SPEED;
 
@@ -37,9 +34,8 @@ public class CNCCommandGenerator {
     CanalDataModel canalDataModel;
     Position startPosition;
 
-    private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
     public CNCCommandGenerator(CanalDataModel canalDataModel,Position startPosition) {
-        this.canalDataModel = canalDataModel;;
+        this.canalDataModel = canalDataModel;
         this.startPosition = startPosition;
     }
 
@@ -50,7 +46,7 @@ public class CNCCommandGenerator {
         try {
             return generateCNCCode(codeWords, gCodes, axisDistance,startPosition);
         } catch (Exception e) {
-            throw new CodeDoesNotExistException("GENERATION CODE WAS NOT SUCCESS" + e.getMessage());
+            throw new CodeDoesNotExistException("Generation Code was not success" + e.getMessage());
         }
     }
 
@@ -106,7 +102,7 @@ public class CNCCommandGenerator {
             throw new IllegalArgumentException("CODE TO SHORT=" + code);
         if (!code.substring(0, 1).matches("[A-Za-z,%]")) throw new Exception("DOES NOT HAVE A COMMAND" + code);
         if (!code.matches(Config.END_OF_PROGRAM_SYMBOLE)) {
-            if (!code.substring(1).matches("[-0-9.]*")) throw new Exception("VALUE IS NOT RIGHT" + code);
+            if (!code.substring(1).matches("[-\\d.]*")) throw new Exception("VALUE IS NOT RIGHT" + code);
         }
         return code.charAt(0);
     }
