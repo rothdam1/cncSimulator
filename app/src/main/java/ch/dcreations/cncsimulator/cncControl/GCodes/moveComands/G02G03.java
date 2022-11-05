@@ -4,17 +4,15 @@ import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.Plane;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.IllegalFormatOfGCodeException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
+import ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Calculator;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ObservableIntegerValue;
-
 import java.util.*;
 
 /**
  * <p>
  * <p>
- * Subclass of moving Code, Calculates the G03 path
+ * Subclass of moving Code, Calculates the G03 G01 path  // Function Circle Interpolation between point
  * <p>
  *
  * @author Damian www.d-creations.org
@@ -22,7 +20,7 @@ import java.util.*;
  * @since 2022-10-22
  */
 
-public class G02_03 extends GCodeMove {
+public class G02G03 extends GCodeMove {
     Map<Character, Double> additionalParameterMap;
 
     double direction;
@@ -34,8 +32,21 @@ public class G02_03 extends GCodeMove {
 
     double distanceErrorMax;
 
-    public G02_03(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Map<AxisName, Double> parameter, Map<Character, Double> additionalParameterMap, Plane plane, double distanceErrorMax) throws Exception {
-        super(codeNumber, feedOptions, spindleSpeed, startPosition, feed, new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()), parameter);
+    /**
+     *
+     * @param codeNumber will be 2 or 3 vor G02 or G03 clockwise or counterclockwise
+     * @param feedOptions  of {@link FeedOptions} if feed per Revolution, FEED per Minute
+     * @param spindleSpeed rotation of the Spindle Rotation per minute
+     * @param startPosition {@link Position} startposition of the code
+     * @param feed feed value
+     * @param parameter Axis Parameter a {@link Map} of {@link AxisName} and position
+     * @param additionalParameterMap all parameters that are no Axis {@link Map} of {@link Character} and position Double
+     * @param plane the cncPlane G17 , G18 , G19    X-Y Axis X-Z or Y-Z
+     * @param distanceErrorMax the maximum calculation error
+     * @throws Exception IF the circleInterpolation is n not possible to calculate or the given parameters are not wright an exception is given
+     */
+    public G02G03(long codeNumber, FeedOptions feedOptions, SpindelRotationOption spindelRotationOption, double spindleSpeed, Position startPosition, double feed, Map<AxisName, Double> parameter, Map<Character, Double> additionalParameterMap, Plane plane, double distanceErrorMax) throws Exception {
+        super(codeNumber, feedOptions,spindelRotationOption, spindleSpeed, startPosition, feed, new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()), parameter);
         this.additionalParameterMap = additionalParameterMap;
         this.distanceErrorMax = distanceErrorMax;
         this.plane = plane;
@@ -197,8 +208,8 @@ public class G02_03 extends GCodeMove {
         }
     }
 
-    public Map<AxisName, Double> calculatePosition(int timesRuns, int resolution) throws Exception {
-        Map<AxisName, Double> posistionMap = new HashMap<>();
+    public Map<AxisName, Double> calculatePosition(int timesRuns, int resolution) {
+        Map<AxisName, Double> positionMap = new HashMap<>();
         double currentPosX = 0;
         double currentPosY = 0;
         double currentPosZ = 0;
@@ -238,10 +249,17 @@ public class G02_03 extends GCodeMove {
                 currentPosX = startPosition.getX() + (((endPosition.getX() - startPosition.getX()) / resolution) * timesRuns);
             }
         }
-        posistionMap.put(AxisName.X, currentPosX);
-        posistionMap.put(AxisName.Y, currentPosY);
-        posistionMap.put(AxisName.Z, currentPosZ);
-        return posistionMap;
+        positionMap.put(AxisName.X, currentPosX);
+        positionMap.put(AxisName.Y, currentPosY);
+        positionMap.put(AxisName.Z, currentPosZ);
+        return positionMap;
     }
 
+    // TODO: 05.11.2022 FUNCTION DOES NOT SUPPORT YET G96
+    @Override
+    public double getRunTimeInMillisecond() throws Exception {
+        if (rotationOption == SpindelRotationOption.CONSTANT_SURFACE_SPEED) throw new Exception("Function does not support G96");
+        double mmPerMinutes =  (feedOptions == FeedOptions.FEED_PER_REVOLUTION) ? feed*spindleSpeed : feed;
+        return   (distance)/mmPerMinutes*(60.0) ; // (distance Millimeter to Meter and Minutes to second * 1000/60) Multiplication in the end for precision
+    }
 }

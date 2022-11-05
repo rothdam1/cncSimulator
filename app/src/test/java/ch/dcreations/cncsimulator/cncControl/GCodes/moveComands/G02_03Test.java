@@ -2,12 +2,9 @@ package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
 
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.Plane;
-import ch.dcreations.cncsimulator.cncControl.Exceptions.IllegalFormatOfGCodeException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
+import ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.value.ObservableIntegerValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * <p>
  * <p>
- *  TEST FOR THE GCode.class
+ *  TEST FOR THE G2/G3 Calculation
  * <p>
  *
  * @author Damian www.d-creations.org
@@ -30,13 +27,14 @@ TESTCASES 1
     TEST CHECK IF PARAMETER ARE RIGHT
 
  */
-class G02_03Test {
+class G02G03Test {
 
     long codeNumber;
-    FeedOptions feedOptions = FeedOptions.FEED_PER_MINUITE;
-    ObservableIntegerValue spindleSpeed =  new SimpleIntegerProperty(5000);
+    FeedOptions feedOptions = FeedOptions.FEED_PER_REVOLUTION;
+    double spindleSpeed =  5000;
         Position startPosition;
-        SimpleDoubleProperty feed = new SimpleDoubleProperty(0.05);
+        SpindelRotationOption spindelRotationOption = SpindelRotationOption.CONSTANT_ROTATION;
+        double feed = 0.05;
         Map<AxisName, Double> parameter;
         Map<Character, Double> additionalParameterMap;
         Plane plane;
@@ -46,7 +44,7 @@ class G02_03Test {
     void setUp() {
         plane = Plane.G17;
         parameter = new HashMap<>();
-        parameter.put(AxisName.X,20.0);
+        parameter.put(AxisName.X,40.0);
         parameter.put(AxisName.Y,0.0);
         parameter.put(AxisName.Z,0.0);
         additionalParameterMap = new HashMap<>();
@@ -57,14 +55,59 @@ class G02_03Test {
     //1_1 X-Y plane but K programmed should give an error
         @Test
         void checkCorrectParameter(){
-            assertThrows(IllegalFormatOfGCodeException.class,() ->
-            {G02_03 g02_03 = new G02_03(codeNumber,feedOptions,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax);});
+        parameter.put(AxisName.X,41.0);
+            assertThrows(Exception.class,() ->
+                    new G02G03(codeNumber,feedOptions,spindelRotationOption,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax));
         }
 
     @Test
-    void testCalculatePosition() {
+    void testCalculatePositionG2() throws Exception {
+        G02G03 g02_G_03 = new G02G03(2,feedOptions,spindelRotationOption,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax);
+        Map<AxisName,Double> position=  g02_G_03.calculatePosition(0,3);
+        assertEquals(startPosition.getX(),position.get(AxisName.X),"Check X Circle Beginning");
+        assertEquals(startPosition.getY(),position.get(AxisName.Y),"Check Y Circle Beginning");
+        assertEquals(startPosition.getZ(),position.get(AxisName.Z),"Check Z Circle Beginning");
+
+        position=  g02_G_03.calculatePosition(3,3);
+        assertEquals(parameter.get(AxisName.X),round(position.get(AxisName.X),10_000),"Check X Circle Beginning");
+        assertEquals(parameter.get(AxisName.Y),round(position.get(AxisName.Y),10_000),"Check Y Circle Beginning");
+        assertEquals(parameter.get(AxisName.Z),round(position.get(AxisName.Z),10_000),"Check Z Circle Beginning");
+
+        position=  g02_G_03.calculatePosition(1,2);
+        assertEquals(20,round(position.get(AxisName.X),10_000),"Check X Circle Beginning");
+        assertEquals(20,round(position.get(AxisName.Y),10_000),"Check Y Circle Beginning");
+        assertEquals(0,round(position.get(AxisName.Z),10_000),"Check Z Circle Beginning");
+    }
+
+    @Test
+    void testCalculatePositionG3() throws Exception {
+        G02G03 g02_G_03 = new G02G03(3,feedOptions,spindelRotationOption,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax);
+        Map<AxisName,Double> position=  g02_G_03.calculatePosition(0,3);
+        assertEquals(startPosition.getX(),position.get(AxisName.X),"Check X Circle Beginning");
+        assertEquals(startPosition.getY(),position.get(AxisName.Y),"Check Y Circle Beginning");
+        assertEquals(startPosition.getZ(),position.get(AxisName.Z),"Check Z Circle Beginning");
+
+        position=  g02_G_03.calculatePosition(3,3);
+        assertEquals(parameter.get(AxisName.X),round(position.get(AxisName.X),10_000),"Check X Circle Beginning");
+        assertEquals(parameter.get(AxisName.Y),round(position.get(AxisName.Y),10_000),"Check Y Circle Beginning");
+        assertEquals(parameter.get(AxisName.Z),round(position.get(AxisName.Z),10_000),"Check Z Circle Beginning");
+
+        position=  g02_G_03.calculatePosition(1,2);
+        assertEquals(20,round(position.get(AxisName.X),10_000),"Check X Circle Beginning");
+        assertEquals(-20,round(position.get(AxisName.Y),10_000),"Check Y Circle Beginning");
+        assertEquals(0,round(position.get(AxisName.Z),10_000),"Check Z Circle Beginning");
+    }
 
 
+    @Test
+    void testTimeCalculation() throws Exception {
+        G02G03 g02_G_03 = new G02G03(3,feedOptions,spindelRotationOption,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax);
+        double distance = additionalParameterMap.get('R')*2*Math.PI/2;
+        double seconds = distance/(feed*spindleSpeed)*60;
+        assertEquals(round(seconds,100) , (round(g02_G_03.getRunTimeInMillisecond(),100)));
+    }
 
+    private double round(Double aDouble,int digitsAfterPoint) {
+        return( Math.round(aDouble*digitsAfterPoint)/(digitsAfterPoint*1.0));
     }
 }

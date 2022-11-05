@@ -9,7 +9,7 @@ import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
 import ch.dcreations.cncsimulator.cncControl.GCodes.PlainGCode;
 import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.G01;
-import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.G02_03;
+import ch.dcreations.cncsimulator.cncControl.GCodes.moveComands.G02G03;
 import ch.dcreations.cncsimulator.cncControl.PLC.MCodes;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
@@ -79,11 +79,11 @@ public class CNCCommandGenerator {
 
     //Decodes the G value to the Correct G Code G01 -> G999
     private GCode decodeGCode(long codeNumber, Map<AxisName, Double> axisDistance,Map<Character, Double> additionalParameterMap,Position startPosition) throws Exception {
-        GCode gCode = new PlainGCode(9999, canalDataModel.getFeedOptions(), canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(),canalDataModel.currentFeedRateProperty());
+        GCode gCode = new PlainGCode(9999);
         Map<AxisName, Double> parameters = setupGCodeParameters(axisDistance);
         switch (Math.toIntExact(codeNumber)) {
-            case 1 -> gCode = new G01(codeNumber, canalDataModel.getFeedOptions(), canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(), startPosition, canalDataModel.currentFeedRateProperty(), parameters);
-            case 2,3 -> gCode = new G02_03(codeNumber,canalDataModel.getFeedOptions(),canalDataModel.getCurrentSelectedSpindle().currentSpindleSpeedProperty(), startPosition, canalDataModel.currentFeedRateProperty(), parameters,additionalParameterMap,canalDataModel.getPlane(),canalDataModel.getCalculationErrorMaxInCircle());
+            case 1 -> gCode = new G01(codeNumber, canalDataModel.getFeedOptions(),canalDataModel.getCurrentSelectedSpindle().getSpindelRotationOption(), canalDataModel.getCurrentSelectedSpindle().getSpindleSpeed(), startPosition, canalDataModel.currentFeedRateProperty().get(), parameters);
+            case 2,3 -> gCode = new G02G03(codeNumber,canalDataModel.getFeedOptions(),canalDataModel.getCurrentSelectedSpindle().getSpindelRotationOption(),canalDataModel.getCurrentSelectedSpindle().getSpindleSpeed(), startPosition, canalDataModel.currentFeedRateProperty().get(), parameters,additionalParameterMap,canalDataModel.getPlane(),canalDataModel.getCalculationErrorMaxInCircle());
             case 97 -> canalDataModel.getCurrentSelectedSpindle().setSpindleRotationOption(CONSTANT_ROTATION);
             case 96 -> canalDataModel.getCurrentSelectedSpindle().setSpindleRotationOption(CONSTANT_SURFACE_SPEED, getCNCAxisProperty(AxisName.X));
             case 98 ->  canalDataModel.setFeedOptions(FeedOptions.FEED_PER_MINUITE);

@@ -1,23 +1,15 @@
 package ch.dcreations.cncsimulator.animation;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Point3D;
+
 import javafx.scene.Camera;
 import javafx.scene.Group;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
-import javafx.scene.shape.Cylinder;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.Shape3D;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
-
-import java.sql.ResultSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,11 +20,9 @@ public class AnimationModel implements CNCAnimation {
 
     private final Camera camera;
     private final Scale scale = new Scale();
-    private final Translate translate = new Translate();
-
     private final Translate zTranslation = new Translate(0,0,-100);
 
-    private Group groupOf3DObjects ;
+    private final Group groupOf3DObjects ;
 
     public AnimationModel(Group groupOf3DObjects, Camera camera) {
         this.camera = camera;

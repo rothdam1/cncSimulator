@@ -31,10 +31,7 @@ import javafx.scene.transform.Rotate;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -111,12 +108,8 @@ public class ViewController {
         {markLine(newValue.intValue(),CanalNames.CANAL1);});
         cncControl.getCanalLinePositionAsObservables(1).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL2));
         setViewCNCControl();
-        scale3DObject.getItems().add(0.5);
-        scale3DObject.getItems().add(1.0);
-        scale3DObject.getItems().add(1.5);
-        scale3DObject.getItems().add(2.0);
-        scale3DObject.getItems().add(2.5);
-        scale3DObject.getSelectionModel().select(1);
+        scale3DObject.getItems().addAll(Arrays.asList( 0.2,0.5,1.0,1.5,2.0,2.5,3.0));
+        scale3DObject.getSelectionModel().select(2);
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL1).bind(textAreaCanal1.textProperty());
         viewControllerModel.getCncProgramText().get(CanalNames.CANAL2).bind(textAreaCanal2.textProperty());
         logger.addHandler(new Handler() {

@@ -100,4 +100,6 @@ public class CanalDataModel {
     public double getCalculationErrorMaxInCircle() {
         return calculationErrorMaxInCircle;
     }
+
+
 }

@@ -3,6 +3,7 @@ import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.IllegalFormatOfGCodeException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
 import ch.dcreations.cncsimulator.cncControl.GCodes.GCode;
+import ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.ExeptionMessages;
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @since 2022-10-22
  */
 
-public class GCodeMove extends GCode {
+public abstract class GCodeMove extends GCode {
     protected Position axisPosition;
 
     protected Map<AxisName, Double> parameter;
@@ -31,12 +32,27 @@ public class GCodeMove extends GCode {
     double distance = 0;
 
 
+    protected long codeNumber;
+    protected FeedOptions feedOptions;
+
+    protected SpindelRotationOption rotationOption;
+    protected double spindleSpeed;
+    protected Position startPosition;
+
+    protected double feed;
     protected double lineStartX = 0;
     protected double lineStartY = 0;
     protected double lineStartZ = 0;
 
-    public GCodeMove(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Position axisPosition, Map<AxisName, Double> parameter) throws Exception {
-        super(codeNumber, feedOptions, spindleSpeed, startPosition, feed);
+    protected SpindelRotationOption spindelRotationOption;
+
+    public GCodeMove(long codeNumber, FeedOptions feedOptions,SpindelRotationOption spindelRotationOption, double spindleSpeed, Position startPosition, double feed, Position axisPosition, Map<AxisName, Double> parameter) throws Exception {
+        super(codeNumber);
+        this.feedOptions = feedOptions;
+        this.spindelRotationOption = spindelRotationOption;
+        this.spindleSpeed = spindleSpeed;
+        this.startPosition = startPosition;
+        this.feed = feed;
         this.axisPosition = axisPosition;
         this.parameter = parameter;
         setupParameterForRun();
@@ -54,7 +70,7 @@ public class GCodeMove extends GCode {
     }
 
     private void setupParameterX() throws Exception {
-        if (!parameter.containsKey(AxisName.X) && parameter.containsKey(AxisName.U))
+        if (parameter.containsKey(AxisName.X) && parameter.containsKey(AxisName.U))
             throw new Exception(ExeptionMessages.ARGRUMENT_X_AND_U);
         if (!parameter.containsKey(AxisName.X) && !parameter.containsKey(AxisName.U)) {
             parameter.put(AxisName.X, startPosition.getX());
@@ -64,7 +80,7 @@ public class GCodeMove extends GCode {
     }
 
     private void setupParameterY() throws Exception {
-        if (!parameter.containsKey(AxisName.Y) && parameter.containsKey(AxisName.V))
+        if (parameter.containsKey(AxisName.Y) && parameter.containsKey(AxisName.V))
             throw new Exception(ExeptionMessages.ARGRUMENT_X_AND_U);
         if (!parameter.containsKey(AxisName.Y) && !parameter.containsKey(AxisName.V)) {
             parameter.put(AxisName.Y, startPosition.getY());
@@ -74,76 +90,13 @@ public class GCodeMove extends GCode {
     }
 
     private void setupParameterZ() throws Exception {
-        if (!parameter.containsKey(AxisName.Z) && parameter.containsKey(AxisName.W))
+        if (parameter.containsKey(AxisName.Z) && parameter.containsKey(AxisName.W))
             throw new Exception(ExeptionMessages.ARGRUMENT_X_AND_U);
         if (!parameter.containsKey(AxisName.Z) && !parameter.containsKey(AxisName.W)) {
             parameter.put(AxisName.Z, startPosition.getZ());
         } else if (parameter.containsKey(AxisName.W)) {
             parameter.put(AxisName.Z, startPosition.getZ() + parameter.get(AxisName.W));
         }
-    }
-
-    public Position getAxisPosition() {
-        return axisPosition;
-    }
-
-
-    public void execute(AtomicBoolean run, AtomicBoolean brakeRunningCode) throws Exception {
-        /*
-        finished.set(false);
-        if (feed.get() == 0) throw new Exception("Feed rate us 0");
-        if (distance == 0) {
-            finished.set(true);
-        } else {
-            double timeMS = (feedOptions == FeedOptions.FEED_PER_REVOLUTION) ?
-                    (60 * ((distance / feed.get()) / spindleSpeed.get()) * 1000) : ((60 * (distance / feed.get())) * 1000);
-            List<Map<AxisName, Double>> toolPath = getPath(Config.POSITION_CALCULATION_RESOLUTION);
-            List<Map<AxisName, Double>> drawPath = getPath(Config.POSITION_CALCULATION_RESOLUTION);
-            double countOfCalculations = Math.ceil(timeMS / Config.VIEW_ACTUALISATION_MULTIPLICATION);
-            for (int i = 0; i < countOfCalculations && run.get() && !finished.get(); ) {
-                if (!brakeRunningCode.get()) {
-                    int position = (int) Math.round(i * (toolPath.size() / countOfCalculations));
-                    if (toolPath.size() > position) {
-                        moveAxisToPathPosition(toolPath.get(position));
-                        i++;
-                        for (int j = toolPath.size() - drawPath.size(); j < position; j++) {
-                            if (drawPath.size() > 0) {
-                                   drawPath.remove(0);
-                            }
-                        }
-                    }
-                }else {
-                    if (!finished.get()) {
-                        Thread.sleep(Config.VIEW_ACTUALISATION_MULTIPLICATION);
-                    }
-                }
-                if (!finished.get()) {
-                    Thread.sleep(Config.VIEW_ACTUALISATION_MULTIPLICATION);
-                }
-
-
-            }
-            if (run.get()) {
-                Map<AxisName, Double> posistionMap = new HashMap<>();
-                posistionMap.put(AxisName.X, endPosition.getX());
-                posistionMap.put(AxisName.Y, endPosition.getY());
-                posistionMap.put(AxisName.Z, endPosition.getZ());
-                moveAxisToPathPosition(posistionMap);
-                int i = 0;
-                while (i < 10 || axisPosition.getX() != endPosition.getX() || axisPosition.getZ() != endPosition.getZ() || axisPosition.getY() != endPosition.getY()) {
-                    Thread.sleep(Config.VIEW_ACTUALISATION_MULTIPLICATION);
-                    i++;
-                }
-            }
-        }
-        finished.set(true);
-        */
-    }
-
-    private void moveAxisToPathPosition(Map<AxisName, Double> position) {
-        axisPosition.setX(position.get(AxisName.X));
-        axisPosition.setY(position.get(AxisName.Y));
-        axisPosition.setZ(position.get(AxisName.Z));
     }
 
     public List<Map<AxisName, Double>> getPath(double positionCalculationResolution) {
@@ -164,7 +117,6 @@ public class GCodeMove extends GCode {
         return pathList;
     }
 
-
     protected Map<AxisName, Double> calculatePosition(int timesRuns, int positionCalculationResolution) throws Exception {
         return Collections.emptyMap();
     }
@@ -182,4 +134,7 @@ public class GCodeMove extends GCode {
         posistionMap.put(AxisName.Z, endPosition.getZ());
         return posistionMap;
     }
+
+
+    public abstract double getRunTimeInMillisecond() throws Exception;
 }

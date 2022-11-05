@@ -1,22 +1,16 @@
 package ch.dcreations.cncsimulator.cncControl.GCodes.moveComands;
-
-
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.AxisName;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
+import ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Calculator;
-import ch.dcreations.cncsimulator.config.LogConfiguration;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ObservableIntegerValue;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * <p>
  * <p>
- * Subclass of moving Code, Calculates the G01 path
+ * Subclass of moving Code, Calculates the G01 path / Linear interpolation
  * <p>
  *
  * @author Damian www.d-creations.org
@@ -26,10 +20,8 @@ import java.util.logging.Logger;
 
 public class G01 extends GCodeMove {
 
-    private static final Logger logger = Logger.getLogger(LogConfiguration.class.getCanonicalName());
-
-    public G01(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, Position startPosition, SimpleDoubleProperty feed, Map<AxisName,Double> parameter) throws Exception {
-        super(codeNumber, feedOptions, spindleSpeed, startPosition,feed,new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()),parameter);
+    public G01(long codeNumber, FeedOptions feedOptions, SpindelRotationOption spindelRotationOption, double spindleSpeed, Position startPosition, double feed, Map<AxisName,Double> parameter) throws Exception {
+        super(codeNumber, feedOptions,spindelRotationOption, spindleSpeed, startPosition,feed,new Position(startPosition.getX(), startPosition.getY(), startPosition.getZ()),parameter);
         distance = Calculator.vectorDistance(endPosition.getX()-startPosition.getX(),endPosition.getY()-startPosition.getY(),endPosition.getZ()-startPosition.getZ());
         lineStartX = startPosition.getX();
         lineStartY = startPosition.getY();
@@ -37,18 +29,27 @@ public class G01 extends GCodeMove {
     }
 
 
-    protected Map<AxisName, Double> calculatePosition(int timesRuns, int resolution) throws Exception {
-        Map<AxisName, Double> posistionMap = new HashMap<>();
-        if(feed.get() == 0) throw new Exception("Feed rate us 0");
+
+    public Map<AxisName, Double> calculatePosition(int timesRuns, int resolution) throws Exception {
+        Map<AxisName, Double> positionMap = new HashMap<>();
+        if(feed == 0) throw new Exception("Feed rate us 0");
         if(distance != 0){
             double currentPosX =  startPosition.getX()+(((endPosition.getX() - startPosition.getX()) / resolution) * timesRuns);
                double currentPosY = startPosition.getY()+ (((endPosition.getY() - startPosition.getY()) / resolution) * timesRuns);
                double currentPosZ = startPosition.getZ()+(((endPosition.getZ() - startPosition.getZ()) / resolution) * timesRuns);
-               posistionMap.put(AxisName.X, currentPosX);
-               posistionMap.put(AxisName.Y, currentPosY);
-               posistionMap.put(AxisName.Z, currentPosZ);
+               positionMap.put(AxisName.X, currentPosX);
+               positionMap.put(AxisName.Y, currentPosY);
+               positionMap.put(AxisName.Z, currentPosZ);
 
            }
-        return posistionMap;
+        return positionMap;
+    }
+
+    // TODO: 05.11.2022 FUNCTION DOES NOT SUPPORT YET G96
+    @Override
+    public double getRunTimeInMillisecond() throws Exception {
+        if (rotationOption == SpindelRotationOption.CONSTANT_SURFACE_SPEED) throw new Exception("Function does not support G96");
+        double feedPerMinutes =  (feedOptions == FeedOptions.FEED_PER_REVOLUTION) ? feed*spindleSpeed*1000 : feed;
+        return   (distance)/feedPerMinutes*(1000.0/60.0) ; // (distance Millimeter to Meter and Minutes to second * 1000/60) Multiplication in the end for precision
     }
 }

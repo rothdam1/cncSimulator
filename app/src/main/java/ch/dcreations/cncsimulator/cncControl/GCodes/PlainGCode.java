@@ -14,7 +14,7 @@ import javafx.beans.value.ObservableIntegerValue;
  * @since 2022-10-22
  */
 public class PlainGCode extends GCode{
-    public PlainGCode(long codeNumber, FeedOptions feedOptions, ObservableIntegerValue spindleSpeed, SimpleDoubleProperty feed) {
-        super(codeNumber, feedOptions, spindleSpeed, new Position(0,0,0), feed);
+    public PlainGCode(long codeNumber) {
+        super(codeNumber);
     }
 }

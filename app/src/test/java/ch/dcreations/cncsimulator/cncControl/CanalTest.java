@@ -100,7 +100,6 @@ class CanalTest {
         assertFalse(canal.getCanalRunState(),"CanalTest  -> 3_1 TEST THREAD STOP WORKS");
         Thread thread = new Thread(new FutureTask<>(canal));
         thread.start();
-        canal.stopRunning();
         Thread.sleep(100);
         //3_2 TEST THREAD IS STOPPED
         assertEquals(Thread.State.TERMINATED, thread.getState(),"CanalTest  -> 3_2 TEST THREAD IS STOPPED");

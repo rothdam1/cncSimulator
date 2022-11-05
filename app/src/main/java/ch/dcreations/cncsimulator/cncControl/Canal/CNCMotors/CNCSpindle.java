@@ -33,4 +33,12 @@ public class CNCSpindle {
     public void setCurrentSpindleSpeed(int currentSpindleSpeed) {
         this.currentSpindleSpeed.set(currentSpindleSpeed);
     }
+
+    public SpindelRotationOption getSpindelRotationOption() {
+        return spindelRotationOption;
+    }
+
+    public double getSpindleSpeed() {
+        return currentSpindleSpeed.get();
+    }
 }
