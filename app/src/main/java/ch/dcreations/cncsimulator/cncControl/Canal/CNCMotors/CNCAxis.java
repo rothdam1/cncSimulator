@@ -22,10 +22,6 @@ public class CNCAxis {
     private final SimpleDoubleProperty axisPosition = new SimpleDoubleProperty(0);
 
 
-    public double getAxisPosition() {
-        return axisPosition.get();
-    }
-
     public DoubleProperty axisPositionProperty() {
         return axisPosition;
     }
@@ -35,7 +31,6 @@ public class CNCAxis {
     }
 
     public void resetPosition() {
-
-        ;
+        axisPosition.set(0);
     }
 }

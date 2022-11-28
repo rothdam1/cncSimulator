@@ -7,15 +7,12 @@ import ch.dcreations.cncsimulator.cncControl.GCodes.SpindelRotationOption;
 import ch.dcreations.cncsimulator.cncControl.Position.Position;
 import ch.dcreations.cncsimulator.config.Config;
 import ch.dcreations.cncsimulator.config.ExeptionMessages;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ObservableIntegerValue;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <p>
  * <p>
- * Extens the GCode Class with all the necessary parameter for the Move Class
+ * Extends the GCode Class with all the necessary parameter for the Move Class
  * <p>
  *
  * @author Damian www.d-creations.org
@@ -28,22 +25,16 @@ public abstract class GCodeMove extends GCode {
 
     protected Map<AxisName, Double> parameter;
     protected Position endPosition;
-
     double distance = 0;
-
-
-    protected long codeNumber;
     protected FeedOptions feedOptions;
 
     protected SpindelRotationOption rotationOption;
     protected double spindleSpeed;
     protected Position startPosition;
-
     protected double feed;
     protected double lineStartX = 0;
     protected double lineStartY = 0;
     protected double lineStartZ = 0;
-
     protected SpindelRotationOption spindelRotationOption;
 
     public GCodeMove(long codeNumber, FeedOptions feedOptions,SpindelRotationOption spindelRotationOption, double spindleSpeed, Position startPosition, double feed, Position axisPosition, Map<AxisName, Double> parameter) throws Exception {
@@ -122,17 +113,17 @@ public abstract class GCodeMove extends GCode {
     }
 
     private Map<AxisName, Double> endOFPath(Map<AxisName, Double> axisNameDoubleMap) throws IllegalFormatOfGCodeException {
-        Map<AxisName, Double> posistionMap = new HashMap<>();
+        Map<AxisName, Double> positionMap = new HashMap<>();
         double xErrorDiff = endPosition.getX() - axisNameDoubleMap.get(AxisName.X);
         double yErrorDiff = endPosition.getY() - axisNameDoubleMap.get(AxisName.Y);
         double zErrorDiff = endPosition.getZ() - axisNameDoubleMap.get(AxisName.Z);
         double error = Math.sqrt(xErrorDiff * xErrorDiff + yErrorDiff * yErrorDiff + zErrorDiff * zErrorDiff);
         if (error > Config.CALCULATION_ERROR_MAX_FOR_CIRCLE_END_POINT)
             throw new IllegalFormatOfGCodeException("END POINT DOES NOT MATCH");
-        posistionMap.put(AxisName.X, endPosition.getX());
-        posistionMap.put(AxisName.Y, endPosition.getY());
-        posistionMap.put(AxisName.Z, endPosition.getZ());
-        return posistionMap;
+        positionMap.put(AxisName.X, endPosition.getX());
+        positionMap.put(AxisName.Y, endPosition.getY());
+        positionMap.put(AxisName.Z, endPosition.getZ());
+        return positionMap;
     }
 
 

@@ -1,10 +1,10 @@
 package ch.dcreations.cncsimulator.animation;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.Sphere;
-public class Line3D  {
+public class Draw3DObject {
 
     Sphere polPolyLine3D;
-    public Line3D(double startX, double startY, double startZ, double endX, double endY, double endZ, javafx.scene.paint.Color color) {
+    public Draw3DObject(double startX, double startY, double startZ, double endX, double endY, double endZ, javafx.scene.paint.Color color) {
         float width = 1;
         this.polPolyLine3D = new Sphere(width);
         polPolyLine3D.setCullFace(CullFace.BACK);

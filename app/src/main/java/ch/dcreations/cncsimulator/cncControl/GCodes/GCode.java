@@ -11,7 +11,6 @@ package ch.dcreations.cncsimulator.cncControl.GCodes;
  * @since 2022-08-18
  */
 public abstract class GCode {
-
     protected long codeNumber;
 
     public GCode(long codeNumber ) {

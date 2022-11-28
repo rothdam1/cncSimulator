@@ -27,7 +27,7 @@ class GCodeTest {
     GCode gCode;
     @BeforeEach
     void setUp() {
-        assertDoesNotThrow(() -> {gCode = new G01(1,FeedOptions.FEED_PER_MINUITE,SpindelRotationOption.CONSTANT_ROTATION,0.0,new Position(0,0,0),0.0,new HashMap<>());});
+        assertDoesNotThrow(() -> {gCode = new G01(1,FeedOptions.FEED_PER_MINUTE,SpindelRotationOption.CONSTANT_ROTATION,0.0,new Position(0,0,0),0.0,new HashMap<>());});
     }
 
     @Test

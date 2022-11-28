@@ -26,10 +26,6 @@ public class CNCSpindle {
         this.axisPositionForConstantSurfaceSpeed = axisPositionForConstantSurfaceSpeed;
     }
 
-    public SimpleIntegerProperty currentSpindleSpeedProperty() {
-        return currentSpindleSpeed;
-    }
-
     public void setCurrentSpindleSpeed(int currentSpindleSpeed) {
         this.currentSpindleSpeed.set(currentSpindleSpeed);
     }

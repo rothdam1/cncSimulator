@@ -25,6 +25,11 @@ import static org.junit.jupiter.api.Assertions.*;
 /* TESTS
 TESTCASES 1
     TEST CHECK IF PARAMETER ARE RIGHT
+TESTCASE 2
+    2_1 CHECK IF A CIRCLE WITH * POINTS IS CALCULATED RIGHT  WHEN  CALCULATING 3 POINT CHECK POINTS in G2
+    2_2 CHECK IF A CIRCLE WITH * POINTS IS CALCULATED RIGHT  WHEN  CALCULATING 3 POINT CHECK POINTS in G3
+TESTCASE 3
+    3_1 CHECK IF CALCULATED TIME IS RIGHT DISTANCE AND SPEED
 
  */
 class G02G03Test {
@@ -60,6 +65,12 @@ class G02G03Test {
                     new G02G03(codeNumber,feedOptions,spindelRotationOption,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax));
         }
 
+    /*2_1 CHECK IF A CIRCLE WITH * POINTS IS CALCULATED RIGHT IN G2
+                                           P2@
+                                          @     @
+                                        @         @
+                             START  P1 @           @P3
+    */
     @Test
     void testCalculatePositionG2() throws Exception {
         G02G03 g02_G_03 = new G02G03(2,feedOptions,spindelRotationOption,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax);
@@ -78,7 +89,7 @@ class G02G03Test {
         assertEquals(20,round(position.get(AxisName.Y),10_000),"Check Y Circle Beginning");
         assertEquals(0,round(position.get(AxisName.Z),10_000),"Check Z Circle Beginning");
     }
-
+//    2_1 CHECK IF A CIRCLE WITH * POINTS IS CALCULATED RIGHT  WHEN  CALCULATING 3 POINT CHECK POINTS in G3
     @Test
     void testCalculatePositionG3() throws Exception {
         G02G03 g02_G_03 = new G02G03(3,feedOptions,spindelRotationOption,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax);
@@ -98,7 +109,7 @@ class G02G03Test {
         assertEquals(0,round(position.get(AxisName.Z),10_000),"Check Z Circle Beginning");
     }
 
-
+// 3_1 CHECK IF CALCULATED TIME IS RIGHT DISTANCE AND SPEED
     @Test
     void testTimeCalculation() throws Exception {
         G02G03 g02_G_03 = new G02G03(3,feedOptions,spindelRotationOption,spindleSpeed,startPosition,feed,parameter,additionalParameterMap,plane,distanceErrorMax);

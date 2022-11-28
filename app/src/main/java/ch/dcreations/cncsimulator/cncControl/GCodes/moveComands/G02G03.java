@@ -255,11 +255,17 @@ public class G02G03 extends GCodeMove {
         return positionMap;
     }
 
-    // TODO: 05.11.2022 FUNCTION DOES NOT SUPPORT YET G96
+
+    // TODO: 05.11.2022 FUNCTION DOES NOT SUPPORT YET G96 at the moments fake with X AXIS
     @Override
     public double getRunTimeInMillisecond() throws Exception {
-        if (rotationOption == SpindelRotationOption.CONSTANT_SURFACE_SPEED) throw new Exception("Function does not support G96");
-        double mmPerMinutes =  (feedOptions == FeedOptions.FEED_PER_REVOLUTION) ? feed*spindleSpeed : feed;
+        double currentSpindlerotation;
+        if (rotationOption == SpindelRotationOption.CONSTANT_SURFACE_SPEED) {
+            currentSpindlerotation = spindleSpeed*1000 / Math.abs(endPosition.getX()-startPosition.getX()) / Math.PI;
+        }else {
+            currentSpindlerotation = spindleSpeed;
+        }
+        double mmPerMinutes =  (feedOptions == FeedOptions.FEED_PER_REVOLUTION) ? feed*currentSpindlerotation : feed;
         return   (distance)/mmPerMinutes*(60.0) ; // (distance Millimeter to Meter and Minutes to second * 1000/60) Multiplication in the end for precision
     }
 }

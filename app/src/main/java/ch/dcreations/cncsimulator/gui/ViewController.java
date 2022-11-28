@@ -105,8 +105,8 @@ public class ViewController {
         this.configuration = config;
         this.cncControl = cncControl;
         cncControl.getCanalLinePositionAsObservables(0).addListener((observable, oldValue, newValue) ->
-        {markLine(newValue.intValue(),CanalNames.CANAL1);});
-        cncControl.getCanalLinePositionAsObservables(1).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue(),CanalNames.CANAL2));
+        {markLine(newValue.intValue()+1,CanalNames.CANAL1);});
+        cncControl.getCanalLinePositionAsObservables(1).addListener((observable, oldValue, newValue) -> markLine(newValue.intValue()+1,CanalNames.CANAL2));
         setViewCNCControl();
         scale3DObject.getItems().addAll(Arrays.asList( 0.2,0.5,1.0,1.5,2.0,2.5,3.0));
         scale3DObject.getSelectionModel().select(2);

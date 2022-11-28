@@ -12,7 +12,6 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
 import javafx.scene.paint.Color;
-
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,15 +39,11 @@ public class Canal implements Callable<Boolean> {
     private CanalDataModel canalDataModel;
     private int countOfProgramLines = 0;
     private final CNCProgram cncProgramText = new CNCProgram("");
-
     private final Lock lockFinishRunProgramCode = new ReentrantLock();
-
     private final Position startPosition = new Position(0, 0, 0, 0, 0, 0);
     private final AtomicBoolean brakeRunningCode = new AtomicBoolean(false);
-
     private final AtomicBoolean canalRunningGCode = new AtomicBoolean(false);
     private final SimpleIntegerProperty programLinePosition = new SimpleIntegerProperty(0);
-
     private final SimpleIntegerProperty executionGCodeLinePosition = new SimpleIntegerProperty(0);
     private final List<Vector> linesToDraw = new LinkedList<>();
     private List<List<Map<AxisName, Double>>> ProgramLinesPaths = new LinkedList<>();
@@ -111,7 +106,6 @@ public class Canal implements Callable<Boolean> {
 
     private void runProgramCode(int lineNumber) {
         lockFinishRunProgramCode.lock();
-
         try {
             //write PATH in to Map, and stores the last end position and set it to the next start Position
             double xPos, yPos, zPos = xPos = yPos = 0;

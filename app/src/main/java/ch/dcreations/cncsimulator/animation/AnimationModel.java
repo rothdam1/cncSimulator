@@ -100,7 +100,7 @@ public class AnimationModel implements CNCAnimation {
     }
 
     public void createNewLine(Vector vector){
-            Line3D line = new Line3D(vector.getStartX(), vector.getStartY(), vector.getStartZ(), vector.getEndX(), vector.getEndY(), vector.getEndZ(), vector.getColor());
+            Draw3DObject line = new Draw3DObject(vector.getStartX(), vector.getStartY(), vector.getStartZ(), vector.getEndX(), vector.getEndY(), vector.getEndZ(), vector.getColor());
             line.get3DObject().getTransforms().add(scale);
             groupOf3DObjects.getChildren().add(line.get3DObject());
     }
