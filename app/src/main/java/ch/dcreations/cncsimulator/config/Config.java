@@ -26,10 +26,10 @@ public class Config {
 
     public static Map<AxisName, CNCAxis> GET_CNC_AXIS_CANAL1() {
         Map<AxisName, CNCAxis> cncAxes = new HashMap<>();
-        cncAxes.put(AxisName.X, new CNCAxis());
-        cncAxes.put(AxisName.Y, new CNCAxis());
-        cncAxes.put(AxisName.Z, new CNCAxis());
-        cncAxes.put(AxisName.C, new CNCAxis());
+        cncAxes.put(AxisName.X, new CNCAxis(2));
+        cncAxes.put(AxisName.Y, new CNCAxis(1));
+        cncAxes.put(AxisName.Z, new CNCAxis(1));
+        cncAxes.put(AxisName.C, new CNCAxis(1));
         return cncAxes;
     }
 
@@ -49,10 +49,10 @@ public class Config {
 
     public static Map<AxisName, CNCAxis> GET_CNC_AXIS_CANAL2() {
         Map<AxisName, CNCAxis> cncAxes = new HashMap<>();
-        cncAxes.put(AxisName.X, new CNCAxis());
-        cncAxes.put(AxisName.Y, new CNCAxis());
-        cncAxes.put(AxisName.Z, new CNCAxis());
-        cncAxes.put(AxisName.C, new CNCAxis());
+        cncAxes.put(AxisName.X, new CNCAxis(2));
+        cncAxes.put(AxisName.Y, new CNCAxis(1));
+        cncAxes.put(AxisName.Z, new CNCAxis(1));
+        cncAxes.put(AxisName.C, new CNCAxis(1));
         return cncAxes;
     }
 

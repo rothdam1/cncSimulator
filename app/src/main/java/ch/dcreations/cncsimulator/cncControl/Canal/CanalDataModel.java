@@ -3,6 +3,7 @@ package ch.dcreations.cncsimulator.cncControl.Canal;
 import ch.dcreations.cncsimulator.cncControl.Canal.CNCMotors.*;
 import ch.dcreations.cncsimulator.cncControl.Exceptions.AxisOrSpindleDoesNotExistException;
 import ch.dcreations.cncsimulator.cncControl.GCodes.FeedOptions;
+import ch.dcreations.cncsimulator.cncControl.GCodes.InterpolationFunction;
 import javafx.beans.property.SimpleDoubleProperty;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,6 +19,7 @@ public class CanalDataModel {
     private CanalState canalState = CanalState.STOP;
     private Plane plane;
 
+    private InterpolationFunction interpolationFunction = InterpolationFunction.G0;
     private final double calculationErrorMaxInCircle;
 
     public CanalDataModel(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles, Plane plane, double calculationErrorMaxInCircle) {
@@ -37,6 +39,14 @@ public class CanalDataModel {
         } else {
             throw new AxisOrSpindleDoesNotExistException("Selected Spindle does not Exist");
         }
+    }
+
+    public InterpolationFunction getInterpolationFunction() {
+        return interpolationFunction;
+    }
+
+    public void setInterpolationFunction(InterpolationFunction interpolationFunction) {
+        this.interpolationFunction = interpolationFunction;
     }
 
     public AtomicBoolean getCanalRunState() {

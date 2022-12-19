@@ -52,7 +52,6 @@ public class Canal implements Callable<Boolean> {
     public Canal(Map<AxisName, CNCAxis> cncAxes, Map<SpindelNames, CNCSpindle> cncSpindles) {
         super();
         programLinePosition.set(0);
-        calculatePath(startPosition);
         try {
             canalDataModel = new CanalDataModel(cncAxes, cncSpindles, Plane.G18, Config.CALCULATION_ERROR_MAX_FOR_CIRCLE_END_POINT);
             canalDataModel.setCurrentSelectedSpindle(SpindelNames.S1);
@@ -65,7 +64,6 @@ public class Canal implements Callable<Boolean> {
     public Boolean call() {
             countOfProgramLines = cncProgramText.countOfLines();
             canalDataModel.setCanalRunState(true);
-            calculatePath(startPosition);
             canalRunningGCode.set(true);
             switch (canalDataModel.getCanalState()) {
                 case SINGLE_STEP -> runNextLine();
@@ -93,7 +91,7 @@ public class Canal implements Callable<Boolean> {
     private void runAllLines() {
         programLinePosition.set(0);
         calculatePath(startPosition);
-        while (programLinePosition.get() <= countOfProgramLines - 2) {
+        for (int i = 0;i < countOfProgramLines - 1;i++) {
             runNextLine();
         }
     }
@@ -122,7 +120,7 @@ public class Canal implements Callable<Boolean> {
                 writeNewPositionToProgramLinesPath(lineNumber, positionPasstPointToDraw);
                 if (!brakeRunningCode.get()) {
                     executionGCodeLinePosition.set(executionGCodeLinePosition.get() + positionPasstPointToDraw - lastPositionPasstPointToDraw);
-                    lastPositionPasstPointToDraw = positionPasstPointToDraw;
+                    lastPositionPasstPointToDraw = positionPasstPointToDraw-1;
                     positionPasstPointToDraw = positionPasstPointToDraw + VIEW_ACTUALISATION_MULTIPLICATION;
                 }
                 Thread.sleep(VIEW_ACTUALISATION_MULTIPLICATION * millisecond);
@@ -132,7 +130,7 @@ public class Canal implements Callable<Boolean> {
             }
         } catch (Exception e) {
             canalDataModel.getCanalRunState().set(false);
-            logger.log(Level.WARNING, "calculate PATH Error" + e.getMessage());
+            logger.log(Level.WARNING, "@ "+lineNumber+ " "+"Programm Error " + e.getMessage());
         } finally {
             lockFinishRunProgramCode.unlock();
         }
@@ -170,7 +168,7 @@ public class Canal implements Callable<Boolean> {
             executionGCodeLinePosition.set(0);
 
         } catch (Exception e) {
-            logger.log(Level.WARNING, "THREAD wait for Stop failed");
+            logger.log(Level.WARNING, "@ THREAD wait for Stop failed");
         } finally {
             canalDataModel.getCanalRunState().set(false);
             lockFinishRunProgramCode.unlock();
@@ -211,6 +209,7 @@ public class Canal implements Callable<Boolean> {
 
     private void calculatePath(Position startPosition) {
         List<List<Map<AxisName, Double>>> programLinesPaths = new LinkedList<>();
+        int i = 0;
         for (String line : cncProgramText.getProgramText()) {
             try {
                 List<Map<AxisName, Double>> positionList = new LinkedList<>();
@@ -220,7 +219,7 @@ public class Canal implements Callable<Boolean> {
                 startPosition = cncProgramCommand.getEndposition();
                 programLinesPaths.add(positionList);
             } catch (Exception e) {
-                logger.log(Level.WARNING, "Error when calculation Tool Path \n" + e.getMessage());
+                logger.log(Level.WARNING, " @ calculatePath line  "+line +"Error" + e.getMessage());
                 canalDataModel.getCanalRunState().set(false);
                 return;
             }

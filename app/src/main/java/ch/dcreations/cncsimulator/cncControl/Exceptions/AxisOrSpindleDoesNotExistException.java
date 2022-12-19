@@ -12,6 +12,7 @@ package ch.dcreations.cncsimulator.cncControl.Exceptions;
  * @since 2022-08-18
  */
 public class AxisOrSpindleDoesNotExistException extends Exception{
+
     public AxisOrSpindleDoesNotExistException(String message) {
         super(message);
     }

@@ -21,6 +21,14 @@ public class CNCAxis {
 
     private final SimpleDoubleProperty axisPosition = new SimpleDoubleProperty(0);
 
+    private final double mutiplicator ;
+
+    public CNCAxis() {
+        this(1);
+    }
+    public CNCAxis(double mutiplicator) {
+        this.mutiplicator = mutiplicator;
+    }
 
     public DoubleProperty axisPositionProperty() {
         return axisPosition;
@@ -32,5 +40,9 @@ public class CNCAxis {
 
     public void resetPosition() {
         axisPosition.set(0);
+    }
+
+    public double getMutiplicator() {
+        return mutiplicator;
     }
 }

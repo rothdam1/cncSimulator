@@ -116,7 +116,7 @@ public class ViewController {
             @Override
             public void publish(LogRecord logRecord) {
                 if (logRecord.getMessage().contains(":")) {
-                    WarringTextView.setText(logRecord.getMessage().substring(logRecord.getMessage().indexOf(":",2)-1));
+                    WarringTextView.setText(logRecord.getMessage().substring(logRecord.getMessage().indexOf("@",2)-1));
                 }else {
                     WarringTextView.setText(logRecord.getMessage());
                 }
@@ -157,6 +157,7 @@ public class ViewController {
             for (int j = oldValue.intValue();j<newValue.intValue()-1&& j<vectorList.size();j++){
                 Vector v = vectorList.get(j);
                 Platform.runLater(()->animationModelList.get(1).createNewLine(v));
+
             }
         });
     }
@@ -247,7 +248,7 @@ public class ViewController {
             for (AxisName axisName :  cncAxis.keySet().stream().sorted().toList()) {
                 Label label = new Label();
                 DecimalFormat df = new DecimalFormat("###.###");
-                label.textProperty().bind(Bindings.concat(axisName,canalNumber," ",cncAxis.get(axisName).axisPositionProperty().asString("%.5f")));
+                label.textProperty().bind(Bindings.concat(axisName,canalNumber," ",cncAxis.get(axisName).axisPositionProperty().multiply(cncAxis.get(axisName).getMutiplicator()).asString("%.5f")));
                 CNCVBox.getChildren().add(label);
             }
             canalNumber++;

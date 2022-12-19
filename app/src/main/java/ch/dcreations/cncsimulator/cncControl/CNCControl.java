@@ -8,7 +8,6 @@ import ch.dcreations.cncsimulator.cncControl.Canal.CanalState;
 import ch.dcreations.cncsimulator.config.LogConfiguration;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.value.ObservableIntegerValue;
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
